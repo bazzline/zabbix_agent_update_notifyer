@@ -24,8 +24,8 @@ function _add_zabbix_agent_configuration ()
     #bo: prepare environment
     if [[ ! -f "${PATH_TO_THE_SOURCE_FILE}" ]];
     then
-        _echo_if_be_verbose ":: File path >>${PATH_TO_THE_SOURCE_FILE}<< is invalid."
-        _echo_if_be_verbose "   File is mandatory to finish installation."
+        _echo_an_error "   File path >>${PATH_TO_THE_SOURCE_FILE}<< is invalid."
+        _echo_an_error "   File is mandatory to finish installation."
 
         exit 1
     fi
@@ -176,7 +176,7 @@ function _check_and_setup_system_environment_or_exit ()
     #bo: check if we are root
     if [[ ${WHO_AM_I} != "root" ]];
     then
-        _echo_if_be_verbose ":: Script needs to be executed as root."
+        _echo_an_error "   Script needs to be executed as root."
 
         exit 1
     fi
@@ -185,8 +185,8 @@ function _check_and_setup_system_environment_or_exit ()
     #bo: check if systemd installed
     if [[ ! -d /usr/lib/systemd ]];
     then
-        _echo_if_be_verbose ":: Directory >>/usr/lib/systemd<< does not exist."
-        _echo_if_be_verbose "   Systemd is mandatory right now. Feel free to create a pull request to support multiple init systems."
+        _echo_an_error "   Directory >>/usr/lib/systemd<< does not exist."
+        _echo_an_error "   Systemd is mandatory right now. Feel free to create a pull request to support multiple init systems."
 
         exit 2
     fi
@@ -197,8 +197,8 @@ function _check_and_setup_system_environment_or_exit ()
 
     if [[ ${NUMBER_OF_ZABBIX_AGENT_SERVICE_FILES_FOUND} -eq 0 ]] ;
     then
-        _echo_if_be_verbose ":: Systemd servive file >>zabbix-agent.service<< not found."
-        _echo_if_be_verbose "   Please install zabbix agent first."
+        _echo_an_error "   Systemd servive file >>zabbix-agent.service<< not found."
+        _echo_an_error "   Please install zabbix agent first."
 
         exit 3
     fi
@@ -208,8 +208,8 @@ function _check_and_setup_system_environment_or_exit ()
     #bo: check if this software is already installed
     if [[ -d "${ROOT_PATH_TO_PACKAGE_CONFIGURATION}" ]];
     then
-        _echo_if_be_verbose ":: Directory >>${ROOT_PATH_TO_PACKAGE_CONFIGURATION}<< does not exist."
-        _echo_if_be_verbose "   Systemd is mandatory right now. Feel free to create a pull request to support multiple init systems."
+        _echo_an_error "   Directory >>${ROOT_PATH_TO_PACKAGE_CONFIGURATION}<< does not exist."
+        _echo_an_error "   Systemd is mandatory right now. Feel free to create a pull request to support multiple init systems."
 
         exit 4
     else
@@ -218,12 +218,18 @@ function _check_and_setup_system_environment_or_exit ()
 
         if [[ "${?}" -gt 0 ]];
         then
-            _echo_if_be_verbose "   Could not create it. mkdir return code was >>${?}<<."
+            _echo_an_error "   Could not create it. mkdir return code was >>${?}<<."
 
             exit 5
         fi
     fi
     #eo: check if this software is already installed
+}
+
+function _echo_an_error ()
+{
+    echo ":: ERROR!"
+    echo "${1}"
 }
 
 function _echo_if_be_verbose ()
@@ -280,8 +286,8 @@ function _main ()
 
     if [[ ! -f ${PATH_TO_CONFIGURATION_FILE} ]];
     then
-        _echo_if_be_verbose ":: File >>${PATH_TO_CONFIGURATION_FILE}<< does not exist."
-        _echo_if_be_verbose "   Configuration file is mandatory."
+        _echo_an_error "   File >>${PATH_TO_CONFIGURATION_FILE}<< does not exist."
+        _echo_an_error "   Configuration file is mandatory."
 
         exit 1
     else
