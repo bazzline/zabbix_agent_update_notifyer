@@ -278,9 +278,9 @@ function _main ()
 
     _echo_if_be_verbose ":: Starting installation"
 
-    if [[ ! -f ${FILE_PATH_TO_CONFIGURATION_FILE} ]];
+    if [[ ! -f ${PATH_TO_CONFIGURATION_FILE} ]];
     then
-        _echo_if_be_verbose ":: File >>${FILE_PATH_TO_CONFIGURATION_FILE}<< does not exist."
+        _echo_if_be_verbose ":: File >>${PATH_TO_CONFIGURATION_FILE}<< does not exist."
         _echo_if_be_verbose "   Configuration file is mandatory."
 
         exit 1
@@ -295,8 +295,8 @@ function _main ()
         #PATH_TO_SYSTEMD_TIMER_FILE
         #FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT
 
-        _echo_if_be_verbose ":: Sourcing file >>${FILE_PATH_TO_CONFIGURATION_FILE}<<."
-        . "${FILE_PATH_TO_CONFIGURATION_FILE}"
+        _echo_if_be_verbose ":: Sourcing file >>${PATH_TO_CONFIGURATION_FILE}<<."
+        . "${PATH_TO_CONFIGURATION_FILE}"
     fi
 
     if [[ ${IS_DRY_RUN} -eq 1 ]];
