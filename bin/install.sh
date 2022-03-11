@@ -33,6 +33,7 @@ function _add_zabbix_agent_configuration ()
     if [[ ! -d "${PATH_TO_THE_DESTINATION_DIRECTORY}" ]];
     then
         _echo_if_be_verbose ":: Creating path >>${PATH_TO_THE_DESTINATION_DIRECTORY}<<."
+
         mkdir -p "${PATH_TO_THE_DESTINATION_DIRECTORY}"
     fi
     #eo: prepare environment
@@ -49,13 +50,17 @@ function _add_zabbix_agent_configuration ()
 UserParameter=update-notifyer.security,cat ${PATH_TO_THE_SECURITY_PACKAGES_FILE} | wc -l
 UserParameter=update-notifyer.updates,cat ${PATH_TO_THE_REGULAR_PACKAGES_FILE} | wc -l
 DELIM
+    fi
     #eo: copying configuration file
 
     #bo: restart zabbix agent
     if systemctl is-active --quiet zabbix-agent.service;
     then
         _echo_if_be_verbose ":: Restarting >>zabbix-agent.service<< to enable new configuration file."
-        systemctl restart zabbix-agent.service
+        if [[ ${IS_DRY_RUN} -ne 1 ]];
+        then
+            systemctl restart zabbix-agent.service
+        fi
     fi
     #eo: restart zabbix agent
 }
@@ -283,7 +288,25 @@ function _main ()
         #PATH_TO_SYSTEMD_TIMER_FILE
         #FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT
 
+        _echo_if_be_verbose ":: Sourcing file >>${FILE_PATH_TO_CONFIGURATION_FILE}<<."
         . "${FILE_PATH_TO_CONFIGURATION_FILE}"
+    fi
+
+    if [[ ${IS_DRY_RUN} -eq 1 ]];
+    then
+        local TEMPORARY_DIRECTORY=$(mktemp -d)
+
+        echo ":: Dry run enabled."
+        echo "   Every path variable will be prefixed with >>${TEMPORARY_DIRECTORY}<<."
+        echo "   This directory won't be removed outomatically!"
+        echo "   Please remove it after finishing the investigation."
+
+        local FILE_PATH_TO_REGULAR_PACKAGES="${TEMPORARY_DIRECTORY}${FILE_PATH_TO_REGULAR_PACKAGES}"
+        local FILE_PATH_TO_SECURITY_PACKAGES="${TEMPORARY_DIRECTORY}${FILE_PATH_TO_SECURITY_PACKAGES}"
+        local ROOT_PATH_TO_PACKAGE_CONFIGURATION="${TEMPORARY_DIRECTORY}${ROOT_PATH_TO_PACKAGE_CONFIGURATION}"
+        local PATH_TO_SYSTEMD_SERVICE_FILE="${TEMPORARY_DIRECTORY}${PATH_TO_SYSTEMD_SERVICE_FILE}"
+        local PATH_TO_SYSTEMD_TIMER_FILE="${TEMPORARY_DIRECTORY}${PATH_TO_SYSTEMD_TIMER_FILE}"
+        local FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT="${TEMPORARY_DIRECTORY}${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}"
     fi
 
     _check_and_setup_system_environment_or_exit "${ROOT_PATH_TO_PACKAGE_CONFIGURATION}"
