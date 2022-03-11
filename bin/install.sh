@@ -50,7 +50,6 @@ function _add_zabbix_agent_configuration ()
 UserParameter=update-notifyer.security,cat ${PATH_TO_THE_SECURITY_PACKAGES_FILE} | wc -l
 UserParameter=update-notifyer.updates,cat ${PATH_TO_THE_REGULAR_PACKAGES_FILE} | wc -l
 DELIM
-    fi
     #eo: copying configuration file
 
     #bo: restart zabbix agent
@@ -269,6 +268,14 @@ function _main ()
     #eo: variable
 
     #bo: code
+    if [[ ${SHOW_HELP} -eq 1 ]];
+    then
+        echo ":: Usage"
+        echo "   install.sh [-d|--dry-run] [-h|--help] [-v|--verbose]"
+
+        exit 0
+    fi
+
     _echo_if_be_verbose ":: Starting installation"
 
     if [[ ! -f ${FILE_PATH_TO_CONFIGURATION_FILE} ]];
