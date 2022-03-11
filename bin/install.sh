@@ -7,6 +7,47 @@
 ####
 
 ####
+# @param: <string: path_to_the_source_zabbix_agent_configuration_file>
+# @param: <string: path_to_the_destination_zabbix_configuration_directory>
+####
+function _add_zabbix_agent_configuration ()
+{
+    #bo: variable
+    local PATH_TO_THE_SOURCE_FILE="${0}"
+    local PATH_TO_THE_DESTINATION_DIRECTORY="${1}"
+    #eo: variable
+
+    #bo: prepare environment
+    if [[ ! -f "${PATH_TO_THE_SOURCE_FILE}" ]];
+    then
+        echo ":: File path >>${PATH_TO_THE_SOURCE_FILE}<< is invalid."
+        echo "   File is mandatory to finish installation."
+
+        exit 1
+    fi
+
+    if [[ ! -d "${PATH_TO_THE_DESTINATION_DIRECTORY}" ]];
+    then
+        echo ":: Creating path >>${PATH_TO_THE_DESTINATION_DIRECTORY}<<."
+        mkdir -p "${PATH_TO_THE_DESTINATION_DIRECTORY}"
+    fi
+    #eo: prepare environment
+
+    #bo: copying configuration file
+    echo ":: Copying file >>${PATH_TO_THE_SOURCE_FILE}<< to >>${PATH_TO_THE_DESTINATION_DIRECTORY}<<."
+    cp "${PATH_TO_THE_SOURCE_FILE}" "${PATH_TO_THE_DESTINATION_DIRECTORY}/"
+    #eo: copying configuration file
+
+    #bo: restart zabbix agent
+    if systemctl is-active --quiet zabbix-agent.service;
+    then
+        echo ":: Restarting >>zabbix-agent.service<< to enable new configuration file."
+        systemctl restart zabbix-agent.service
+    fi
+    #eo: restart zabbix agent
+}
+
+####
 # @param: <string: path_to_the_script_file>
 # @param: <string: path_to_regular_packages_file>
 # @param: <string: path_to_security_packages_file>
@@ -169,7 +210,9 @@ function _main ()
 {
     local CURRENT_SCRIPT_PATH=$(cd $(dirname "${BASH_SOURCE[0]}"); pwd)
 
-    local FILE_PATH_TO_CONFIGURATION_FILE="${CURRENT_SCRIPT_PATH}/../data/configuration.sh"
+    local PATH_TO_CONFIGURATION_FILE="${CURRENT_SCRIPT_PATH}/../data/configuration.sh"
+    local PATH_TO_ZABBIX_AGENT_CONFIGURATION_FILE="${CURRENT_SCRIPT_PATH}/../data/zabbix_agentd.d/update_notifyer.conf"
+    local PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY=""   #will be filled up later
 
     if [[ ! -f ${FILE_PATH_TO_CONFIGURATION_FILE} ]];
     then
@@ -183,8 +226,8 @@ function _main ()
         #FILE_PATH_TO_SECURITY_PACKAGES
         #ROOT_PATH_TO_PACKAGE_CONFIGURATION
 
-        #FILE_PATH_TO_SYSTEMD_SERVICE_FILE
-        #FILE_PATH_TO_SYSTEMD_TIMER_FILE
+        #PATH_TO_SYSTEMD_SERVICE_FILE
+        #PATH_TO_SYSTEMD_TIMER_FILE
         #FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT
 
         . "${FILE_PATH_TO_CONFIGURATION_FILE}"
@@ -195,9 +238,11 @@ function _main ()
     if [[ -f /usr/bin/pacman ]];
     then
         _create_script_for_pacman "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
+        PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY="/etc/zabbix/zabbix_agentd.conf.d"
     elif [[ -f /usr/bin/apt ]];
     then
         _create_script_for_apt "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
+        PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY="/etc/zabbix/zabbix_agentd.d"
     else
         echo ":: No supported package manager found."
         echo "   pacman or apt are mandatory right now. Feel free to create a pull request to support more package managers."
@@ -206,16 +251,9 @@ function _main ()
     fi
 
     #take a look on zabbix_mysql_housekeeping/bin/install.sh
-    _create_systemd_files "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${FILE_PATH_TO_SYSTEMD_SERVICE_FILE}" "${FILE_PATH_TO_SYSTEMD_TIMER_FILE}"
+    _create_systemd_files "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${PATH_TO_SYSTEMD_SERVICE_FILE}" "${PATH_TO_SYSTEMD_TIMER_FILE}"
 
-    _add_zabbix_agent_configuration
-
-    #bo: restart zabbix agent
-    if systemctl is-active --quiet zabbix-agent.service;
-    then
-        systemctl restart zabbix-agent.service
-    fi
-    #eo: restart zabbix agent
+    _add_zabbix_agent_configuration "${PATH_TO_ZABBIX_AGENT_CONFIGURATION_FILE}" "${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}"
 }
 
 _main ${*}
