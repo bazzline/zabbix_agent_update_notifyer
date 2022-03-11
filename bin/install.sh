@@ -7,9 +7,9 @@
 ####
 
 ####
-# @param: <string| path_to_the_script_file>
-# @param: <string| path_to_regular_packages_file>
-# @param: <string| path_to_security_packages_file>
+# @param: <string: path_to_the_script_file>
+# @param: <string: path_to_regular_packages_file>
+# @param: <string: path_to_security_packages_file>
 ####
 function _create_script_for_apt ()
 {
@@ -36,9 +36,9 @@ DELIM
 }
 
 ####
-# @param: <string| path_to_the_script_file>
-# @param: <string| path_to_regular_packages_file>
-# @param: <string| path_to_security_packages_file>
+# @param: <string: path_to_the_script_file>
+# @param: <string: path_to_regular_packages_file>
+# @param: <string: path_to_security_packages_file>
 ####
 function _create_script_for_pacman ()
 {
@@ -61,6 +61,51 @@ function _create_script_for_pacman ()
 
     logger -i -p cron.info ":: Finished updating of package files."
 DELIM
+}
+
+####
+# @param: <string: path_to_the_script_file>
+# @param: <string: path_to_the_systemd_service_file>
+# @param: <string: path_to_the_systemd_timer_file>
+####
+function _create_systemd_files ()
+{
+    #bo: variable
+    local PATH_TO_THE_SCRIPT_FILE="${0}"
+    local PATH_TO_THE_SYSTEMD_SERVICE_FILE="${0}"
+    local PATH_TO_THE_SYSTEMD_TIMER_FILE="${0}"
+    #eo: variable
+
+    #bo: systemd service file
+    cat > "${PATH_TO_THE_SYSTEMD_SERVICE_FILE}" <<DELIM
+[Unit]
+Description=zabbix-agent update-notifier service
+ConditionACPower=true
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=${PATH_TO_THE_SCRIPT_FILE}
+KillMode=process
+TimeoutStopSec=21600
+DELIM
+    #be: systemd service file
+
+    #bo: systemd timer file
+    cat > "${PATH_TO_THE_SYSTEMD_TIMER_FILE}" <<DELIM
+[Unit]
+Description=Hourly zabbix-agent update-notifier timer
+
+[Timer]
+OnCalendar=hourly
+RandomizedDelaySec=42
+Persistent=true
+Unit=${PATH_TO_THE_SYSTEMD_SERVICE_FILE}
+
+[Install]
+WantedBy=timers.target
+DELIM
+    #be: systemd timer file
 }
 
 function _check_and_setup_system_environment_or_exit ()
@@ -118,10 +163,6 @@ function _check_and_setup_system_environment_or_exit ()
         fi
     fi
     #eo: check if this software is already installed
-}
-
-function _create_systemd_files ()
-{
 }
 
 function _main ()
