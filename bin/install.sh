@@ -15,10 +15,10 @@
 function _add_zabbix_agent_configuration ()
 {
     #bo: variable
-    local PATH_TO_THE_DESTINATION_DIRECTORY="${1}"
-    local PATH_TO_THE_REGULAR_PACKAGES_FILE="${2}"
-    local PATH_TO_THE_SECURITY_PACKAGES_FILE="${3}"
-    local PATH_TO_THE_SOURCE_FILE="${0}"
+    local PATH_TO_THE_DESTINATION_DIRECTORY="${2}"
+    local PATH_TO_THE_REGULAR_PACKAGES_FILE="${3}"
+    local PATH_TO_THE_SECURITY_PACKAGES_FILE="${4}"
+    local PATH_TO_THE_SOURCE_FILE="${1}"
     #eo: variable
 
     #bo: prepare environment
@@ -72,9 +72,9 @@ DELIM
 function _create_script_for_apt ()
 {
     #bo: variable
-    local PATH_TO_SCRIPT_FILE="${0}"
-    local PATH_TO_REGULAR_PACKAGES_FILE="${1}"
-    local PATH_TO_SECURITY_PACKAGES_FILE="${2}"
+    local PATH_TO_SCRIPT_FILE="${1}"
+    local PATH_TO_REGULAR_PACKAGES_FILE="${2}"
+    local PATH_TO_SECURITY_PACKAGES_FILE="${3}"
     #eo: variable
 
     cat > "${PATH_TO_SCRIPT_FILE}" <<DELIM
@@ -101,9 +101,9 @@ DELIM
 function _create_script_for_pacman ()
 {
     #bo: variable
-    local PATH_TO_SCRIPT_FILE="${0}"
-    local PATH_TO_REGULAR_PACKAGES_FILE="${1}"
-    local PATH_TO_SECURITY_PACKAGES_FILE="${2}"
+    local PATH_TO_SCRIPT_FILE="${1}"
+    local PATH_TO_REGULAR_PACKAGES_FILE="${2}"
+    local PATH_TO_SECURITY_PACKAGES_FILE="${3}"
     #eo: variable
 
     cat > "${PATH_TO_SCRIPT_FILE}" <<DELIM
@@ -129,9 +129,9 @@ DELIM
 function _create_systemd_files ()
 {
     #bo: variable
-    local PATH_TO_THE_SCRIPT_FILE="${0}"
-    local PATH_TO_THE_SYSTEMD_SERVICE_FILE="${0}"
-    local PATH_TO_THE_SYSTEMD_TIMER_FILE="${0}"
+    local PATH_TO_THE_SCRIPT_FILE="${1}"
+    local PATH_TO_THE_SYSTEMD_SERVICE_FILE="${2}"
+    local PATH_TO_THE_SYSTEMD_TIMER_FILE="${3}"
     #eo: variable
 
     #bo: systemd service file
@@ -230,7 +230,7 @@ function _echo_if_be_verbose ()
 {
     if [[ ${BE_VERBOSE} -eq 1 ]];
     then
-        echo "${0}"
+        echo "${1}"
     fi
 }
 
@@ -320,6 +320,7 @@ function _main ()
     if [[ ${BE_VERBOSE} -eq 1 ]];
     then
         echo ":: Dumping used variables"
+        echo ""
         echo "   ==== FLAGS ===="
         echo "   BE_VERBOSE >>${BE_VERBOSE}<<."
         echo "   IS_DRY_RUN >>${IS_DRY_RUN}<<."
