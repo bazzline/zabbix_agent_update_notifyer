@@ -7,7 +7,6 @@
 ####
 
 ####
-# @param: <string: path_to_the_source_zabbix_agent_configuration_file>
 # @param: <string: path_to_the_destination_directory>
 # @param: <string: path_to_the_regular_package_file>
 # @param: <string: path_to_the_security_package_file>
@@ -15,21 +14,12 @@
 function _add_zabbix_agent_configuration ()
 {
     #bo: variable
-    local PATH_TO_THE_DESTINATION_DIRECTORY="${2}"
-    local PATH_TO_THE_REGULAR_PACKAGES_FILE="${3}"
-    local PATH_TO_THE_SECURITY_PACKAGES_FILE="${4}"
-    local PATH_TO_THE_SOURCE_FILE="${1}"
+    local PATH_TO_THE_DESTINATION_DIRECTORY="${1}"
+    local PATH_TO_THE_REGULAR_PACKAGES_FILE="${2}"
+    local PATH_TO_THE_SECURITY_PACKAGES_FILE="${3}"
     #eo: variable
 
     #bo: prepare environment
-    if [[ ! -f "${PATH_TO_THE_SOURCE_FILE}" ]];
-    then
-        _echo_an_error "   File path >>${PATH_TO_THE_SOURCE_FILE}<< is invalid."
-        _echo_an_error "   File is mandatory to finish installation."
-
-        exit 1
-    fi
-
     if [[ ! -d "${PATH_TO_THE_DESTINATION_DIRECTORY}" ]];
     then
         _echo_if_be_verbose ":: Creating path >>${PATH_TO_THE_DESTINATION_DIRECTORY}<<."
@@ -178,7 +168,10 @@ function _check_and_setup_system_environment_or_exit ()
     then
         _echo_an_error "   Script needs to be executed as root."
 
-        exit 1
+        if [[ ${IS_DRY_RUN} -ne 1 ]];
+        then
+            exit 1
+        fi
     fi
     #eo: check if we are root
 
@@ -214,7 +207,7 @@ function _check_and_setup_system_environment_or_exit ()
         exit 4
     else
         _echo_if_be_verbose ":: Creating path >>${ROOT_PATH_TO_PACKAGE_CONFIGURATION}<<."
-        sudo mkdir -p "${ROOT_PATH_TO_PACKAGE_CONFIGURATION}"
+        mkdir -p "${ROOT_PATH_TO_PACKAGE_CONFIGURATION}"
 
         if [[ "${?}" -gt 0 ]];
         then
@@ -304,6 +297,23 @@ function _main ()
         _echo_if_be_verbose ":: Sourcing file >>${PATH_TO_CONFIGURATION_FILE}<<."
         . "${PATH_TO_CONFIGURATION_FILE}"
     fi
+    
+    if [[ -f /usr/bin/pacman ]];
+    then
+        _echo_if_be_verbose ":: Packagemanager >>pacman<< detected."
+        PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY="/etc/zabbix/zabbix_agentd.conf.d"
+
+    elif [[ -f /usr/bin/apt ]];
+    then
+        _echo_if_be_verbose ":: Packagemanager >>apt<< detected."
+        PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY="/etc/zabbix/zabbix_agentd.d"
+
+    else
+        _echo_if_be_verbose ":: No supported package manager found."
+        _echo_if_be_verbose "   pacman or apt are mandatory right now. Feel free to create a pull request to support more package managers."
+
+        exit 1
+    fi
 
     if [[ ${IS_DRY_RUN} -eq 1 ]];
     then
@@ -313,6 +323,7 @@ function _main ()
         echo "   Every path variable will be prefixed with >>${TEMPORARY_DIRECTORY}<<."
         echo "   This directory won't be removed outomatically!"
         echo "   Please remove it after finishing the investigation."
+        echo ""
 
         local FILE_PATH_TO_REGULAR_PACKAGES="${TEMPORARY_DIRECTORY}${FILE_PATH_TO_REGULAR_PACKAGES}"
         local FILE_PATH_TO_SECURITY_PACKAGES="${TEMPORARY_DIRECTORY}${FILE_PATH_TO_SECURITY_PACKAGES}"
@@ -321,6 +332,8 @@ function _main ()
         local PATH_TO_SYSTEMD_TIMER_FILE="${TEMPORARY_DIRECTORY}${PATH_TO_SYSTEMD_TIMER_FILE}"
         local FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT="${TEMPORARY_DIRECTORY}${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}"
         local PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY="${TEMPORARY_DIRECTORY}${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}"
+
+        mkdir -p "${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}"
     fi
 
     if [[ ${BE_VERBOSE} -eq 1 ]];
@@ -346,22 +359,13 @@ function _main ()
     fi
 
     _check_and_setup_system_environment_or_exit "${ROOT_PATH_TO_PACKAGE_CONFIGURATION}"
-    
+
     if [[ -f /usr/bin/pacman ]];
     then
         _create_script_for_pacman "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
-        PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY="/etc/zabbix/zabbix_agentd.conf.d"
-
     elif [[ -f /usr/bin/apt ]];
     then
         _create_script_for_apt "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
-        PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY="/etc/zabbix/zabbix_agentd.d"
-
-    else
-        _echo_if_be_verbose ":: No supported package manager found."
-        _echo_if_be_verbose "   pacman or apt are mandatory right now. Feel free to create a pull request to support more package managers."
-
-        exit 1
     fi
 
     #take a look on zabbix_mysql_housekeeping/bin/install.sh
