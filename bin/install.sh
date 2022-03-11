@@ -24,15 +24,15 @@ function _add_zabbix_agent_configuration ()
     #bo: prepare environment
     if [[ ! -f "${PATH_TO_THE_SOURCE_FILE}" ]];
     then
-        echo ":: File path >>${PATH_TO_THE_SOURCE_FILE}<< is invalid."
-        echo "   File is mandatory to finish installation."
+        _echo_if_be_verbose ":: File path >>${PATH_TO_THE_SOURCE_FILE}<< is invalid."
+        _echo_if_be_verbose "   File is mandatory to finish installation."
 
         exit 1
     fi
 
     if [[ ! -d "${PATH_TO_THE_DESTINATION_DIRECTORY}" ]];
     then
-        echo ":: Creating path >>${PATH_TO_THE_DESTINATION_DIRECTORY}<<."
+        _echo_if_be_verbose ":: Creating path >>${PATH_TO_THE_DESTINATION_DIRECTORY}<<."
         mkdir -p "${PATH_TO_THE_DESTINATION_DIRECTORY}"
     fi
     #eo: prepare environment
@@ -54,7 +54,7 @@ DELIM
     #bo: restart zabbix agent
     if systemctl is-active --quiet zabbix-agent.service;
     then
-        echo ":: Restarting >>zabbix-agent.service<< to enable new configuration file."
+        _echo_if_be_verbose ":: Restarting >>zabbix-agent.service<< to enable new configuration file."
         systemctl restart zabbix-agent.service
     fi
     #eo: restart zabbix agent
@@ -162,6 +162,9 @@ DELIM
     #be: systemd timer file
 }
 
+####
+# @param <string: root_path_to_package_configuration>
+####
 function _check_and_setup_system_environment_or_exit ()
 {
     local ROOT_PATH_TO_PACKAGE_CONFIGURATION="${1}"
@@ -169,7 +172,7 @@ function _check_and_setup_system_environment_or_exit ()
     #bo: check if we are root
     if [[ ${WHO_AM_I} != "root" ]];
     then
-        echo ":: Script needs to be executed as root."
+        _echo_if_be_verbose ":: Script needs to be executed as root."
 
         exit 1
     fi
@@ -178,8 +181,8 @@ function _check_and_setup_system_environment_or_exit ()
     #bo: check if systemd installed
     if [[ ! -d /usr/lib/systemd ]];
     then
-        echo ":: Directory >>/usr/lib/systemd<< does not exist."
-        echo "   Systemd is mandatory right now. Feel free to create a pull request to support multiple init systems."
+        _echo_if_be_verbose ":: Directory >>/usr/lib/systemd<< does not exist."
+        _echo_if_be_verbose "   Systemd is mandatory right now. Feel free to create a pull request to support multiple init systems."
 
         exit 2
     fi
@@ -190,8 +193,8 @@ function _check_and_setup_system_environment_or_exit ()
 
     if [[ ${NUMBER_OF_ZABBIX_AGENT_SERVICE_FILES_FOUND} -eq 0 ]] ;
     then
-        echo ":: Systemd servive file >>zabbix-agent.service<< not found."
-        echo "   Please install zabbix agent first."
+        _echo_if_be_verbose ":: Systemd servive file >>zabbix-agent.service<< not found."
+        _echo_if_be_verbose "   Please install zabbix agent first."
 
         exit 3
     fi
@@ -201,17 +204,17 @@ function _check_and_setup_system_environment_or_exit ()
     #bo: check if this software is already installed
     if [[ -d "${ROOT_PATH_TO_PACKAGE_CONFIGURATION}" ]];
     then
-        echo ":: Directory >>${ROOT_PATH_TO_PACKAGE_CONFIGURATION}<< does not exist."
-        echo "   Systemd is mandatory right now. Feel free to create a pull request to support multiple init systems."
+        _echo_if_be_verbose ":: Directory >>${ROOT_PATH_TO_PACKAGE_CONFIGURATION}<< does not exist."
+        _echo_if_be_verbose "   Systemd is mandatory right now. Feel free to create a pull request to support multiple init systems."
 
         exit 4
     else
-        echo ":: Creating path >>${ROOT_PATH_TO_PACKAGE_CONFIGURATION}<<."
+        _echo_if_be_verbose ":: Creating path >>${ROOT_PATH_TO_PACKAGE_CONFIGURATION}<<."
         sudo mkdir -p "${ROOT_PATH_TO_PACKAGE_CONFIGURATION}"
 
         if [[ "${?}" -gt 0 ]];
         then
-            echo "   Could not create it. mkdir return code was >>${?}<<."
+            _echo_if_be_verbose "   Could not create it. mkdir return code was >>${?}<<."
 
             exit 5
         fi
@@ -219,21 +222,54 @@ function _check_and_setup_system_environment_or_exit ()
     #eo: check if this software is already installed
 }
 
+function _echo_if_be_verbose ()
+{
+    if [[ ${BE_VERBOSE} -eq 1 ]];
+    then
+        echo "${0}"
+    fi
+}
+
 function _main ()
 {
     #bo: variable
+    local BE_VERBOSE=0
     local CURRENT_SCRIPT_PATH=$(cd $(dirname "${BASH_SOURCE[0]}"); pwd)
+    local IS_DRY_RUN=0
+    local SHOW_HELP=0
 
     local PATH_TO_CONFIGURATION_FILE="${CURRENT_SCRIPT_PATH}/../data/configuration.sh"
     local PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY=""   #will be filled up later
+
+    while true;
+    do
+        case "${1}" in
+            "-d" | "--dry-run" )
+                IS_DRY_RUN=1
+                shift 1
+                ;;
+            "-h" | "--help" )
+                SHOW_HELP=1
+                shift 1
+                ;;
+            "-v" | "--verbose" )
+                BE_VERBOSE=1
+                shift 1
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
     #eo: variable
 
     #bo: code
-    echo ":: Starting installation"
+    _echo_if_be_verbose ":: Starting installation"
 
     if [[ ! -f ${FILE_PATH_TO_CONFIGURATION_FILE} ]];
     then
-        echo ":: File >>${FILE_PATH_TO_CONFIGURATION_FILE}<< does not exist."
+        _echo_if_be_verbose ":: File >>${FILE_PATH_TO_CONFIGURATION_FILE}<< does not exist."
+        _echo_if_be_verbose "   Configuration file is mandatory."
 
         exit 1
     else
@@ -263,8 +299,8 @@ function _main ()
         PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY="/etc/zabbix/zabbix_agentd.d"
 
     else
-        echo ":: No supported package manager found."
-        echo "   pacman or apt are mandatory right now. Feel free to create a pull request to support more package managers."
+        _echo_if_be_verbose ":: No supported package manager found."
+        _echo_if_be_verbose "   pacman or apt are mandatory right now. Feel free to create a pull request to support more package managers."
 
         exit 1
     fi
@@ -274,8 +310,8 @@ function _main ()
 
     _add_zabbix_agent_configuration "${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}" "${PATH_TO_THE_DESTINATION_DIRECTORY}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
 
-    echo ":: Finished installation"
-    echo "   Please import the template file in path >>${CURRENT_SCRIPT_PATH}/../template/update_notifyer.xml<< in your zabbix."
+    _echo_if_be_verbose ":: Finished installation"
+    _echo_if_be_verbose "   Please import the template file in path >>${CURRENT_SCRIPT_PATH}/../template/update_notifyer.xml<< in your zabbix."
     #eo: code
 }
 
