@@ -6,21 +6,60 @@
 # @author stev leibelt <artodeto@bazzline.net>
 ####
 
-function _create_pacman_script ()
+####
+# @param: <string| path_to_the_script_file>
+# @param: <string| path_to_regular_packages_file>
+# @param: <string| path_to_security_packages_file>
+####
+function _create_script_for_apt ()
 {
     #bo: variable
     local PATH_TO_SCRIPT_FILE="${0}"
-    local PATH_TO_NON_SECUITY="${1}"
-    local PATH_TO_SECURITY="${2}"
+    local PATH_TO_REGULAR_PACKAGES_FILE="${1}"
+    local PATH_TO_SECURITY_PACKAGES_FILE="${2}"
     #eo: variable
 
     cat > "${PATH_TO_SCRIPT_FILE}" <<DELIM
-#logging
-pacman -Syu
+    logger -i -p cron.info ":: Starting updating of package files."
+    logger -i -p cron.debug "   Updating package database."
+    apt update
 
-pacman -Qu > \"${PATH_TO_SECURITY}\"
+    logger -i -p cron.debug "   Creating file >>\${PATH_TO_SECURITY_PACKAGES_FILE}<<."
+    apt upgrade --dry-run | grep -ci ^inst.*security > \"\${PATH_TO_SECURITY_PACKAGES_FILE}\"
 
-cp \"${PATH_TO_SECURITY}\" \"${PATH_TO_NON_SECUITY}\"
+    logger -i -p cron.debug "   Creating file >>\${PATH_TO_REGULAR_PACKAGES_FILE}<<."
+    apt full-upgrade --dry-run | 
+    apt upgrade --dry-run | grep -iP '^Inst((?!security).)*\$' > \"\${PATH_TO_REGULAR_PACKAGES_FILE}\"
+
+    logger -i -p cron.info ":: Finished updating of package files."
+DELIM
+}
+
+####
+# @param: <string| path_to_the_script_file>
+# @param: <string| path_to_regular_packages_file>
+# @param: <string| path_to_security_packages_file>
+####
+function _create_script_for_pacman ()
+{
+    #bo: variable
+    local PATH_TO_SCRIPT_FILE="${0}"
+    local PATH_TO_REGULAR_PACKAGES_FILE="${1}"
+    local PATH_TO_SECURITY_PACKAGES_FILE="${2}"
+    #eo: variable
+
+    cat > "${PATH_TO_SCRIPT_FILE}" <<DELIM
+    logger -i -p cron.info ":: Starting updating of package files."
+    logger -i -p cron.debug "   Updating package database."
+    pacman -Syu
+
+    logger -i -p cron.debug "   Creating file >>\${PATH_TO_SECURITY_PACKAGES_FILE}<<."
+    pacman -Qu > \"${PATH_TO_SECURITY_PACKAGES_FILE}\"
+
+    logger -i -p cron.debug "   Creating file >>\${PATH_TO_REGULAR_PACKAGES_FILE}<<."
+    cp \"${PATH_TO_SECURITY_PACKAGES_FILE}\" \"\${PATH_TO_REGULAR_PACKAGES_FILE}\"
+
+    logger -i -p cron.info ":: Finished updating of package files."
 DELIM
 }
 
