@@ -8,13 +8,17 @@
 
 ####
 # @param: <string: path_to_the_source_zabbix_agent_configuration_file>
-# @param: <string: path_to_the_destination_zabbix_configuration_directory>
+# @param: <string: path_to_the_destination_directory>
+# @param: <string: path_to_the_regular_package_file>
+# @param: <string: path_to_the_security_package_file>
 ####
 function _add_zabbix_agent_configuration ()
 {
     #bo: variable
-    local PATH_TO_THE_SOURCE_FILE="${0}"
     local PATH_TO_THE_DESTINATION_DIRECTORY="${1}"
+    local PATH_TO_THE_REGULAR_PACKAGES_FILE="${2}"
+    local PATH_TO_THE_SECURITY_PACKAGES_FILE="${3}"
+    local PATH_TO_THE_SOURCE_FILE="${0}"
     #eo: variable
 
     #bo: prepare environment
@@ -34,8 +38,17 @@ function _add_zabbix_agent_configuration ()
     #eo: prepare environment
 
     #bo: copying configuration file
-    echo ":: Copying file >>${PATH_TO_THE_SOURCE_FILE}<< to >>${PATH_TO_THE_DESTINATION_DIRECTORY}<<."
-    cp "${PATH_TO_THE_SOURCE_FILE}" "${PATH_TO_THE_DESTINATION_DIRECTORY}/"
+    cat > "${PATH_TO_THE_DESTINATION_DIRECTORY}/update_notifyer.conf" <<DELIM
+####
+# @see: https://github.com/theranger/zabbix-apt/blob/master/zabbix_agentd.d/apt.conf
+# @since: 2022-03-09
+# @author: stev leibelt <artodeto@bazzline.net>
+####
+# Treat security and regular updates differently
+####
+UserParameter=update-notifyer.security,cat ${PATH_TO_THE_SECURITY_PACKAGES_FILE} | wc -l
+UserParameter=update-notifyer.updates,cat ${PATH_TO_THE_REGULAR_PACKAGES_FILE} | wc -l
+DELIM
     #eo: copying configuration file
 
     #bo: restart zabbix agent
@@ -208,11 +221,15 @@ function _check_and_setup_system_environment_or_exit ()
 
 function _main ()
 {
+    #bo: variable
     local CURRENT_SCRIPT_PATH=$(cd $(dirname "${BASH_SOURCE[0]}"); pwd)
 
     local PATH_TO_CONFIGURATION_FILE="${CURRENT_SCRIPT_PATH}/../data/configuration.sh"
-    local PATH_TO_ZABBIX_AGENT_CONFIGURATION_FILE="${CURRENT_SCRIPT_PATH}/../data/zabbix_agentd.d/update_notifyer.conf"
     local PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY=""   #will be filled up later
+    #eo: variable
+
+    #bo: code
+    echo ":: Starting installation"
 
     if [[ ! -f ${FILE_PATH_TO_CONFIGURATION_FILE} ]];
     then
@@ -239,10 +256,12 @@ function _main ()
     then
         _create_script_for_pacman "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
         PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY="/etc/zabbix/zabbix_agentd.conf.d"
+
     elif [[ -f /usr/bin/apt ]];
     then
         _create_script_for_apt "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
         PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY="/etc/zabbix/zabbix_agentd.d"
+
     else
         echo ":: No supported package manager found."
         echo "   pacman or apt are mandatory right now. Feel free to create a pull request to support more package managers."
@@ -253,7 +272,11 @@ function _main ()
     #take a look on zabbix_mysql_housekeeping/bin/install.sh
     _create_systemd_files "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${PATH_TO_SYSTEMD_SERVICE_FILE}" "${PATH_TO_SYSTEMD_TIMER_FILE}"
 
-    _add_zabbix_agent_configuration "${PATH_TO_ZABBIX_AGENT_CONFIGURATION_FILE}" "${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}"
+    _add_zabbix_agent_configuration "${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}" "${PATH_TO_THE_DESTINATION_DIRECTORY}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
+
+    echo ":: Finished installation"
+    echo "   Please import the template file in path >>${CURRENT_SCRIPT_PATH}/../template/update_notifyer.xml<< in your zabbix."
+    #eo: code
 }
 
 _main ${*}

@@ -9,8 +9,8 @@
     </groups>
     <templates>
         <template>
-            <template>Template App Packagemanager Updates</template>
-            <name>Template App Packagemanager Updates</name>
+            <template>Template App Update-Notifyer</template>
+            <name>Template App Update-Notifyer</name>
             <description/>
             <groups>
                 <group>
@@ -19,7 +19,7 @@
             </groups>
             <applications>
                 <application>
-                    <name>Packagemanager</name>
+                    <name>Update-Notifyer</name>
                 </application>
             </applications>
             <items>
@@ -29,7 +29,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>packagemanager.security</key>
+                    <key>update-notifyer.security</key>
                     <delay>900</delay>
                     <history>90</history>
                     <trends>365</trends>
@@ -60,7 +60,7 @@
                     <inventory_link>0</inventory_link>
                     <applications>
                         <application>
-                            <name>Packagemanager</name>
+                            <name>Update-Notifyer</name>
                         </application>
                     </applications>
                     <valuemap/>
@@ -72,7 +72,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>packagemanager.updates</key>
+                    <key>update-notifyer.updates</key>
                     <delay>900</delay>
                     <history>90</history>
                     <trends>365</trends>
@@ -119,7 +119,7 @@
     </templates>
     <triggers>
         <trigger>
-            <expression>{Template App Packagemanager Updates:packagemanager.security.last()}&gt;0 and {Template App Packagemanager Updates:packagemanager.updates.last()}&gt;0</expression>
+            <expression>{Template App Update-Notifyer Updates:update-notifyer.security.last()}&gt;0 and {Template App Update-Notifyer Updates:update-notifyer.updates.last()}&gt;0</expression>
             <recovery_mode>0</recovery_mode>
             <recovery_expression/>
             <name>{ITEM.LASTVALUE1} security and {ITEM.LASTVALUE2} regular updates on {HOST.NAME}</name>
@@ -135,7 +135,7 @@
             <tags/>
         </trigger>
         <trigger>
-            <expression>{Template App Packagemanager Updates:packagemanager.updates.last()}&gt;0 and {Template App Packagemanager Updates:packagemanager.security.last()}=0</expression>
+            <expression>{Template App Update-Notifyer Updates:update-notifyer.updates.last()}&gt;0 and {Template App Update-Notifyer Updates:update-notifyer.security.last()}=0</expression>
             <recovery_mode>0</recovery_mode>
             <recovery_expression/>
             <name>{ITEM.LASTVALUE} regular updates on {HOST.NAME}</name>
@@ -151,7 +151,7 @@
             <tags/>
         </trigger>
         <trigger>
-            <expression>{Template App Packagemanager Updates:packagemanager.security.last()}&gt;0 and {Template App Packagemanager Updates:packagemanager.updates.last()}=0</expression>
+            <expression>{Template App Update-Notifyer Updates:update-notifyer.security.last()}&gt;0 and {Template App Update-Notifyer Updates:update-notifyer.updates.last()}=0</expression>
             <recovery_mode>0</recovery_mode>
             <recovery_expression/>
             <name>{ITEM.LASTVALUE} security updates on {HOST.NAME}</name>
