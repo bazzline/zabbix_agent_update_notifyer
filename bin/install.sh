@@ -68,19 +68,30 @@ function _create_script_for_apt ()
     #eo: variable
 
     cat > "${PATH_TO_SCRIPT_FILE}" <<DELIM
-    logger -i -p cron.info ":: Starting updating of package files."
-    logger -i -p cron.debug "   Updating package database."
-    apt update
+#!/bin/bash
+####
+# Creates files containting updateable packages
+####
+# @since 20220312
+# @author zabbix_agent-update_notifyer
+####
 
-    logger -i -p cron.debug "   Creating file >>\${PATH_TO_SECURITY_PACKAGES_FILE}<<."
-    apt upgrade --dry-run | grep -ci ^inst.*security > \"\${PATH_TO_SECURITY_PACKAGES_FILE}\"
+logger -i -p cron.info ":: Starting updating of package files."
+logger -i -p cron.info ":: Starting updating of package files."
+logger -i -p cron.debug "   Updating package database."
+apt update
 
-    logger -i -p cron.debug "   Creating file >>\${PATH_TO_REGULAR_PACKAGES_FILE}<<."
-    apt full-upgrade --dry-run | 
-    apt upgrade --dry-run | grep -iP '^Inst((?!security).)*\$' > \"\${PATH_TO_REGULAR_PACKAGES_FILE}\"
+logger -i -p cron.debug "   Creating file >>${PATH_TO_SECURITY_PACKAGES_FILE}<<."
+apt upgrade --dry-run | grep -ci ^inst.*security > "${PATH_TO_SECURITY_PACKAGES_FILE}"
 
-    logger -i -p cron.info ":: Finished updating of package files."
+logger -i -p cron.debug "   Creating file >>${PATH_TO_REGULAR_PACKAGES_FILE}<<."
+apt full-upgrade --dry-run | 
+apt upgrade --dry-run | grep -iP '^Inst((?!security).)*\$' > "${PATH_TO_REGULAR_PACKAGES_FILE}"
+
+logger -i -p cron.info ":: Finished updating of package files."
 DELIM
+
+    chmod +x "${PATH_TO_SCRIPT_FILE}"
 }
 
 ####
@@ -97,18 +108,28 @@ function _create_script_for_pacman ()
     #eo: variable
 
     cat > "${PATH_TO_SCRIPT_FILE}" <<DELIM
-    logger -i -p cron.info ":: Starting updating of package files."
-    logger -i -p cron.debug "   Updating package database."
-    pacman -Syu
+#!/bin/bash
+####
+# Creates files containting updateable packages
+####
+# @since 20220312
+# @author zabbix_agent-update_notifyer
+####
 
-    logger -i -p cron.debug "   Creating file >>\${PATH_TO_SECURITY_PACKAGES_FILE}<<."
-    pacman -Qu > \"${PATH_TO_SECURITY_PACKAGES_FILE}\"
+logger -i -p cron.info ":: Starting updating of package files."
+logger -i -p cron.debug "   Updating package database."
+pacman -Sy
 
-    logger -i -p cron.debug "   Creating file >>\${PATH_TO_REGULAR_PACKAGES_FILE}<<."
-    cp \"${PATH_TO_SECURITY_PACKAGES_FILE}\" \"\${PATH_TO_REGULAR_PACKAGES_FILE}\"
+logger -i -p cron.debug "   Creating file >>${PATH_TO_SECURITY_PACKAGES_FILE}<<."
+pacman -Qu > "${PATH_TO_SECURITY_PACKAGES_FILE}"
 
-    logger -i -p cron.info ":: Finished updating of package files."
+logger -i -p cron.debug "   Creating file >>${PATH_TO_REGULAR_PACKAGES_FILE}<<."
+cp "${PATH_TO_SECURITY_PACKAGES_FILE}" "${PATH_TO_REGULAR_PACKAGES_FILE}"
+
+logger -i -p cron.info ":: Finished updating of package files."
 DELIM
+
+    chmod +x "${PATH_TO_SCRIPT_FILE}"
 }
 
 ####
@@ -122,6 +143,8 @@ function _create_systemd_files ()
     local PATH_TO_THE_SCRIPT_FILE="${1}"
     local PATH_TO_THE_SYSTEMD_SERVICE_FILE="${2}"
     local PATH_TO_THE_SYSTEMD_TIMER_FILE="${3}"
+
+    local SYSTEMD_TIMER=$(basename "${PATH_TO_THE_SYSTEMD_TIMER_FILE}")
     #eo: variable
 
     #bo: systemd service file
@@ -137,6 +160,7 @@ ExecStart=${PATH_TO_THE_SCRIPT_FILE}
 KillMode=process
 TimeoutStopSec=21600
 DELIM
+    _echo_if_be_verbose "   Created >>${PATH_TO_THE_SYSTEMD_SERVICE_FILE}<<."
     #be: systemd service file
 
     #bo: systemd timer file
@@ -153,7 +177,17 @@ Unit=${PATH_TO_THE_SYSTEMD_SERVICE_FILE}
 [Install]
 WantedBy=timers.target
 DELIM
-    #be: systemd timer file
+    _echo_if_be_verbose "   Created >>${PATH_TO_THE_SYSTEMD_TIMER_FILE}<<."
+    #eo: systemd timer file
+
+    #bo: register and enable timer
+    _echo_if_be_verbose "   Enabling timer >>${SYSTEMD_TIMER}<<."
+    if [[ ${IS_DRY_RUN} -ne 1 ]];
+    then
+        systemctl daemon-reload
+        systemctl enable ${SYSTEMD_TIMER}
+    fi
+    #eo: register and enable timer
 }
 
 ####
@@ -333,9 +367,12 @@ function _main ()
         local FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT="${TEMPORARY_DIRECTORY}${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}"
         local PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY="${TEMPORARY_DIRECTORY}${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}"
 
-        local DIRECTORY_PATH_FOR_PACKAGES_FILES=$(dirname "${PATH_TO_REGULAR_PACKAGES_FILE}")
+        local DIRECTORY_PATH_FOR_PACKAGES_FILES=$(dirname "${FILE_PATH_TO_REGULAR_PACKAGES}")
 
+        echo "   Creating path >>${DIRECTORY_PATH_FOR_PACKAGES_FILES}<<."
         mkdir -p "${DIRECTORY_PATH_FOR_PACKAGES_FILES}"
+
+        echo "   Creating path >>${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}<<."
         mkdir -p "${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}"
     fi
 
@@ -376,7 +413,7 @@ function _main ()
     #take a look on zabbix_mysql_housekeeping/bin/install.sh
     _create_systemd_files "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${PATH_TO_SYSTEMD_SERVICE_FILE}" "${PATH_TO_SYSTEMD_TIMER_FILE}"
 
-    _add_zabbix_agent_configuration "${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}" "${PATH_TO_THE_DESTINATION_DIRECTORY}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
+    _add_zabbix_agent_configuration "${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
 
     _echo_if_be_verbose ":: Finished installation"
     _echo_if_be_verbose "   Please import the template file in path >>${CURRENT_SCRIPT_PATH}/../template/update_notifyer.xml<< in your zabbix."

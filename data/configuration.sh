@@ -6,8 +6,8 @@
 # @author stev leibelt <artodeto@bazzline.net>
 ####
 
-local FILE_PATH_TO_REGULAR_PACKAGES="/var/local/packagemanager-list_of_updateable_regular_packages.txt"
-local FILE_PATH_TO_SECURITY_PACKAGES="/var/local/packagemanager-list_of_updateable_security_packages.txt"
+local FILE_PATH_TO_REGULAR_PACKAGES="/var/local/update_notifyer-list_of_updateable_regular_packages.txt"
+local FILE_PATH_TO_SECURITY_PACKAGES="/var/local/update_notifyer-list_of_updateable_security_packages.txt"
 local ROOT_PATH_TO_PACKAGE_CONFIGURATION="/etc/net.bazzline/zabbix_agent/update_notifyer"
 
 local PATH_TO_SYSTEMD_SERVICE_FILE="${ROOT_PATH_TO_PACKAGE_CONFIGURATION}/zabbix_agent-update_notifyer.service"
