@@ -145,6 +145,7 @@ function _create_systemd_files ()
     local PATH_TO_THE_SYSTEMD_TIMER_FILE="${3}"
 
     local SYSTEMD_TIMER=$(basename "${PATH_TO_THE_SYSTEMD_TIMER_FILE}")
+    local SYSTEMD_SERVICE=$(basename "${PATH_TO_THE_SYSTEMD_SERVICE_FILE}")
     #eo: variable
 
     #bo: systemd service file
@@ -161,6 +162,14 @@ KillMode=process
 TimeoutStopSec=21600
 DELIM
     _echo_if_be_verbose "   Created >>${PATH_TO_THE_SYSTEMD_SERVICE_FILE}<<."
+
+    _echo_if_be_verbose "   Copying file >>${PATH_TO_THE_SYSTEMD_SERVICE_FILE}<< to >><<."
+    cp "${PATH_TO_THE_SYSTEMD_SERVICE_FILE}" "/etc/systemd/system/${SYSTEMD_SERVICE}"
+
+    if [[ ${?} -ne 0 ]];
+    then
+        _echo_an_error "   Failed with exit code >>${?}<<."
+    fi
     #be: systemd service file
 
     #bo: systemd timer file
@@ -178,6 +187,14 @@ Unit=${PATH_TO_THE_SYSTEMD_SERVICE_FILE}
 WantedBy=timers.target
 DELIM
     _echo_if_be_verbose "   Created >>${PATH_TO_THE_SYSTEMD_TIMER_FILE}<<."
+
+    _echo_if_be_verbose "   Copying file >>${PATH_TO_THE_SYSTEMD_TIMER_FILE}<< to >><<."
+    cp "${PATH_TO_THE_SYSTEMD_TIMER_FILE}" "/etc/systemd/system/${SYSTEMD_TIMER}"
+
+    if [[ ${?} -ne 0 ]];
+    then
+        _echo_an_error "   Failed with exit code >>${?}<<."
+    fi
     #eo: systemd timer file
 
     #bo: register and enable timer

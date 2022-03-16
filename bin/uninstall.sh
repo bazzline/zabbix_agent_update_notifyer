@@ -46,10 +46,12 @@ function _remove_systemd_files ()
     local PATH_TO_THE_SYSTEMD_TIMER_FILE="${2}"
 
     local SYSTEMD_TIMER=$(basename "${PATH_TO_THE_SYSTEMD_TIMER_FILE}")
+    local SYSTEMD_SERVICE=$(basename "${PATH_TO_THE_SYSTEMD_SERVICE_FILE}")
     #eo: variable
 
     #bo: code
     _echo_if_be_verbose "   Deactivating timer >>${SYSTEMD_TIMER}<<."
+
     if [[ ${IS_DRY_RUN} -ne 1 ]];
     then
         systemctl disable ${SYSTEMD_TIMER}
@@ -57,8 +59,10 @@ function _remove_systemd_files ()
     fi
 
     __remove_file "${PATH_TO_THE_SYSTEMD_TIMER_FILE}"
+    __remove_file "/etc/systemd/system/${SYSTEMD_TIMER}"
 
     __remove_file "${PATH_TO_THE_SYSTEMD_SERVICE_FILE}"
+    __remove_file "/etc/systemd/system/${SYSTEMD_SERVICE}"
     #eo: code
 }
 
