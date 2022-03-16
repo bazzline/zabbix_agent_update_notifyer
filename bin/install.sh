@@ -175,7 +175,7 @@ DELIM
     #bo: systemd timer file
     cat > "${PATH_TO_THE_SYSTEMD_TIMER_FILE}" <<DELIM
 [Unit]
-Description=Hourly zabbix-agent update-notifier timer
+Description=Hourly zabbix-agent update-notifier
 
 [Timer]
 OnCalendar=hourly
@@ -189,6 +189,7 @@ DELIM
     _echo_if_be_verbose "   Created >>${PATH_TO_THE_SYSTEMD_TIMER_FILE}<<."
 
     _echo_if_be_verbose "   Copying file >>${PATH_TO_THE_SYSTEMD_TIMER_FILE}<< to >><<."
+
     cp "${PATH_TO_THE_SYSTEMD_TIMER_FILE}" "/etc/systemd/system/${SYSTEMD_TIMER}"
 
     if [[ ${?} -ne 0 ]];
@@ -199,10 +200,12 @@ DELIM
 
     #bo: register and enable timer
     _echo_if_be_verbose "   Activating timer >>${SYSTEMD_TIMER}<<."
+
     if [[ ${IS_DRY_RUN} -ne 1 ]];
     then
         systemctl daemon-reload
         systemctl enable ${SYSTEMD_TIMER}
+        systemctl start ${SYSTEMD_TIMER}
     fi
     #eo: register and enable timer
 }

@@ -54,6 +54,7 @@ function _remove_systemd_files ()
 
     if [[ ${IS_DRY_RUN} -ne 1 ]];
     then
+        systemctl stop ${SYSTEMD_TIMER}
         systemctl disable ${SYSTEMD_TIMER}
         systemctl daemon-reload
     fi
@@ -98,6 +99,7 @@ function _remove_zabbix_agent_configuration ()
     if systemctl is-active --quiet zabbix-agent.service;
     then
         _echo_if_be_verbose ":: Restarting >>zabbix-agent.service<< to enable new configuration file."
+
         if [[ ${IS_DRY_RUN} -ne 1 ]];
         then
             systemctl restart zabbix-agent.service
