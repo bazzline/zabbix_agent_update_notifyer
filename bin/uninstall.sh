@@ -270,7 +270,10 @@ function _main ()
         _echo_if_be_verbose ":: No supported package manager found."
         _echo_if_be_verbose "   pacman or apt are mandatory right now. Feel free to create a pull request to support more package managers."
 
-        exit 1
+        if [[ ${IS_DRY_RUN} -ne 1 ]];
+        then
+            exit 1
+        fi
     fi
 
     if [[ ${IS_DRY_RUN} -eq 1 ]];
