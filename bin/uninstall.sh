@@ -136,7 +136,10 @@ function _remove_configuration ()
 ####
 function _check_and_setup_system_environment_or_exit ()
 {
+    #bo: variable
     local ROOT_PATH_TO_PACKAGE_CONFIGURATION="${1}"
+    local WHO_AM_I=$(whoami)
+    #eo: variable
 
     #bo: check if we are root
     if [[ ${WHO_AM_I} != "root" ]];

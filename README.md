@@ -24,6 +24,7 @@ sudo bash bin/install.sh
 
 #import the template in template/update_notifyer.xml
 # in your zabbix server
+#`Configuration` -> `Templates` -> `Import`
 
 cd ${WORKING_DIRECTORY}
 
