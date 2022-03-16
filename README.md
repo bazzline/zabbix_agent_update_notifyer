@@ -13,6 +13,8 @@ The main idea is currently written down [here](https://github.com/stevleibelt/Ge
 
 # Installation
 
+For easy installation, git is mandatory.
+
 ```
 WORKING_DIRECTORY=$(pwd)
 TEMPORARY_DIRECTORY=$(mktemp -d)
