@@ -28,7 +28,7 @@ function _add_zabbix_agent_configuration ()
     fi
     #eo: prepare environment
 
-    #bo: copying configuration file
+    #bo: creating configuration file
     cat > "${PATH_TO_THE_DESTINATION_DIRECTORY}/update_notifyer.conf" <<DELIM
 ####
 # @see: https://github.com/theranger/zabbix-apt/blob/master/zabbix_agentd.d/apt.conf
@@ -40,7 +40,7 @@ function _add_zabbix_agent_configuration ()
 UserParameter=update-notifyer.security,cat ${PATH_TO_THE_SECURITY_PACKAGES_FILE} | wc -l
 UserParameter=update-notifyer.updates,cat ${PATH_TO_THE_REGULAR_PACKAGES_FILE} | wc -l
 DELIM
-    #eo: copying configuration file
+    #eo: creating configuration file
 
     #bo: restart zabbix agent
     if systemctl is-active --quiet zabbix-agent.service;
@@ -181,7 +181,7 @@ DELIM
     #eo: systemd timer file
 
     #bo: register and enable timer
-    _echo_if_be_verbose "   Enabling timer >>${SYSTEMD_TIMER}<<."
+    _echo_if_be_verbose "   Activating timer >>${SYSTEMD_TIMER}<<."
     if [[ ${IS_DRY_RUN} -ne 1 ]];
     then
         systemctl daemon-reload
@@ -224,19 +224,18 @@ function _check_and_setup_system_environment_or_exit ()
 
     if [[ ${NUMBER_OF_ZABBIX_AGENT_SERVICE_FILES_FOUND} -eq 0 ]] ;
     then
-        _echo_an_error "   Systemd servive file >>zabbix-agent.service<< not found."
+        _echo_an_error "   Systemd service file >>zabbix-agent.service<< not found."
         _echo_an_error "   Please install zabbix agent first."
 
         exit 3
     fi
-
     #eo: check if zabbix-agent is installed
 
     #bo: check if this software is already installed
     if [[ -d "${ROOT_PATH_TO_PACKAGE_CONFIGURATION}" ]];
     then
-        _echo_an_error "   Directory >>${ROOT_PATH_TO_PACKAGE_CONFIGURATION}<< does not exist."
-        _echo_an_error "   Systemd is mandatory right now. Feel free to create a pull request to support multiple init systems."
+        _echo_an_error "   Directory >>${ROOT_PATH_TO_PACKAGE_CONFIGURATION}<< does exist."
+        _echo_an_error "   Looks like installation was already done."
 
         exit 4
     else
@@ -416,7 +415,7 @@ function _main ()
     _add_zabbix_agent_configuration "${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
 
     _echo_if_be_verbose ":: Finished installation"
-    _echo_if_be_verbose "   Please import the template file in path >>${CURRENT_SCRIPT_PATH}/../template/update_notifyer.xml<< in your zabbix."
+    _echo_if_be_verbose "   Please import the template file in path >>${CURRENT_SCRIPT_PATH}/../template/update_notifyer.xml<< in your zabbix server."
     #eo: code
 }
 
