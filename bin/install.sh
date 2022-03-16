@@ -38,7 +38,7 @@ function _add_zabbix_agent_configuration ()
 # Treat security and regular updates differently
 ####
 UserParameter=update-notifyer.security,cat ${PATH_TO_THE_SECURITY_PACKAGES_FILE} | wc -l
-UserParameter=update-notifyer.updates,cat ${PATH_TO_THE_REGULAR_PACKAGES_FILE} | wc -l
+UserParameter=update-notifyer.regular,cat ${PATH_TO_THE_REGULAR_PACKAGES_FILE} | wc -l
 DELIM
     #eo: creating configuration file
 
@@ -175,10 +175,10 @@ DELIM
     #bo: systemd timer file
     cat > "${PATH_TO_THE_SYSTEMD_TIMER_FILE}" <<DELIM
 [Unit]
-Description=Hourly zabbix-agent update-notifier
+Description=15 minute zabbix-agent update-notifier
 
 [Timer]
-OnCalendar=hourly
+OnCalendar=*:0/15
 RandomizedDelaySec=42
 Persistent=true
 Unit=${SYSTEMD_SERVICE}

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>6.0</version>
+    <date>2022-03-16T14:04:59Z</date>
+    <groups>
+        <group>
+            <uuid>7df96b18c230490a9a0a9e2307226338</uuid>
+            <name>Templates</name>
+        </group>
+        <group>
+            <uuid>846977d1dfed4968bc5f8bdb363285bc</uuid>
+            <name>Templates/Operating systems</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <uuid>1a247ddf36b745a8af19ed3728a51fcf</uuid>
+            <template>Template Application Update-Notifyer</template>
+            <name>Template Application Update-Notifyer</name>
+            <description>Adds support to check if there are package updates available.</description>
+            <groups>
+                <group>
+                    <name>Templates</name>
+                </group>
+                <group>
+                    <name>Templates/Operating systems</name>
+                </group>
+            </groups>
+            <items>
+                <item>
+                    <uuid>0d9cf3960c3f4d5abfe7b2481b099445</uuid>
+                    <name>Security Updates</name>
+                    <key>update-notifyer.security</key>
+                    <delay>15m</delay>
+                    <triggers>
+                        <trigger>
+                            <uuid>13a3d9763331420fa4100007e3eb0b00</uuid>
+                            <expression>last(/Template Application Update-Notifyer/update-notifyer.security)&gt;0</expression>
+                            <name>{ITEM.LASTVALUE1} security and {ITEM.LASTVALUE2} regular updates on {HOST.NAME}</name>
+                            <priority>HIGH</priority>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>fb9279d86dd4448aa30ec6f7b4d8571f</uuid>
+                    <name>Non-Critical Updates</name>
+                    <key>update-notifyer.updates</key>
+                    <delay>15m</delay>
+                    <triggers>
+                        <trigger>
+                            <uuid>988f49e54f9645ea967dde67262be031</uuid>
+                            <expression>last(/Template Application Update-Notifyer/update-notifyer.updates)&gt;0</expression>
+                            <name>{ITEM.LASTVALUE} regular updates on {HOST.NAME}</name>
+                            <priority>WARNING</priority>
+                        </trigger>
+                    </triggers>
+                </item>
+            </items>
+        </template>
+    </templates>
+</zabbix_export>
