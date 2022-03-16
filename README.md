@@ -19,7 +19,9 @@ TEMPORARY_DIRECTORY=$(mktemp -d)
 
 cd ${TEMPORARY_DIRECTORY}
 git clone https://github.com/bazzline/zabbix_agent_update_notifyer .
-#call install.sh with -d for dry run usage
+#call >>install.sh -h<< to display help
+#call >>install.sh -d<< for dry run usage
+#call >>install.sh -v<< for verbose output
 sudo bash bin/install.sh
 
 #import the template in template/update_notifyer.xml
@@ -39,6 +41,9 @@ TEMPORARY_DIRECTORY=$(mktemp -d)
 
 cd ${TEMPORARY_DIRECTORY}
 git clone https://github.com/bazzline/zabbix_agent_update_notifyer .
+#call >>uninstall.sh -h<< to display help
+#call >>uninstall.sh -d<< for dry run usage
+#call >>uninstall.sh -v<< for verbose output
 sudo bash bin/uninstall.sh
 
 cd ${WORKING_DIRECTORY}
