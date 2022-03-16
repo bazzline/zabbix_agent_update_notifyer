@@ -82,7 +82,7 @@ logger -i -p cron.debug "   Updating package database."
 apt update
 
 logger -i -p cron.debug "   Creating file >>${PATH_TO_SECURITY_PACKAGES_FILE}<<."
-apt upgrade --dry-run | grep -ci ^inst.*security > "${PATH_TO_SECURITY_PACKAGES_FILE}"
+apt upgrade --dry-run | grep -i ^inst.*security > "${PATH_TO_SECURITY_PACKAGES_FILE}"
 
 logger -i -p cron.debug "   Creating file >>${PATH_TO_REGULAR_PACKAGES_FILE}<<."
 apt full-upgrade --dry-run | 
@@ -181,7 +181,7 @@ Description=Hourly zabbix-agent update-notifier timer
 OnCalendar=hourly
 RandomizedDelaySec=42
 Persistent=true
-Unit=${PATH_TO_THE_SYSTEMD_SERVICE_FILE}
+Unit=${SYSTEMD_SERVICE}
 
 [Install]
 WantedBy=timers.target

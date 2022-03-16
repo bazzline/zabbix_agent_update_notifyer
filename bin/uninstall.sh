@@ -286,7 +286,6 @@ function _main ()
     if [[ ${IS_DRY_RUN} -eq 1 ]];
     then
         echo ":: Dry run enabled."
-        echo ""
     fi
 
     if [[ ${BE_VERBOSE} -eq 1 ]];
