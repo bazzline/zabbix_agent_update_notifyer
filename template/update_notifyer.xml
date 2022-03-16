@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>6.0</version>
-    <date>2022-03-16T14:25:56Z</date>
+    <date>2022-03-16T20:28:28Z</date>
     <groups>
         <group>
             <uuid>7df96b18c230490a9a0a9e2307226338</uuid>
@@ -38,7 +38,7 @@
                             <expression>last(/Template Application Update-Notifyer/update-notifyer.regular)&gt;0</expression>
                             <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
                             <recovery_expression>last(/Template Application Update-Notifyer/update-notifyer.regular)=0</recovery_expression>
-                            <name>regular updates available on {HOST.NAME}</name>
+                            <name>{ITEM.LASTVALUE} regular updates available on {HOST.NAME}</name>
                             <priority>WARNING</priority>
                         </trigger>
                     </triggers>
@@ -54,7 +54,7 @@
                             <expression>last(/Template Application Update-Notifyer/update-notifyer.security)&gt;0</expression>
                             <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
                             <recovery_expression>last(/Template Application Update-Notifyer/update-notifyer.security)=0</recovery_expression>
-                            <name>security updates available on {HOST.NAME}</name>
+                            <name>{ITEM.LASTVALUE} security updates available on {HOST.NAME}</name>
                             <priority>HIGH</priority>
                         </trigger>
                     </triggers>
