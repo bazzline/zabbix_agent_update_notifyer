@@ -46,6 +46,7 @@ DELIM
     if systemctl is-active --quiet zabbix-agent.service;
     then
         _echo_if_be_verbose ":: Restarting >>zabbix-agent.service<< to enable new configuration file."
+
         if [[ ${IS_DRY_RUN} -ne 1 ]];
         then
             systemctl restart zabbix-agent.service
@@ -163,9 +164,6 @@ TimeoutStopSec=21600
 DELIM
     _echo_if_be_verbose "   Created >>${PATH_TO_THE_SYSTEMD_SERVICE_FILE}<<."
 
-    _echo_if_be_verbose "   Copying file >>${PATH_TO_THE_SYSTEMD_SERVICE_FILE}<< to >><<."
-    cp "${PATH_TO_THE_SYSTEMD_SERVICE_FILE}" "/etc/systemd/system/${SYSTEMD_SERVICE}"
-
     if [[ ${?} -ne 0 ]];
     then
         _echo_an_error "   Failed with exit code >>${?}<<."
@@ -187,10 +185,6 @@ Unit=${SYSTEMD_SERVICE}
 WantedBy=timers.target
 DELIM
     _echo_if_be_verbose "   Created >>${PATH_TO_THE_SYSTEMD_TIMER_FILE}<<."
-
-    _echo_if_be_verbose "   Copying file >>${PATH_TO_THE_SYSTEMD_TIMER_FILE}<< to >><<."
-
-    cp "${PATH_TO_THE_SYSTEMD_TIMER_FILE}" "/etc/systemd/system/${SYSTEMD_TIMER}"
 
     if [[ ${?} -ne 0 ]];
     then
@@ -277,8 +271,7 @@ function _check_and_setup_system_environment_or_exit ()
 
 function _echo_an_error ()
 {
-    echo ":: ERROR!"
-    echo "${1}"
+    echo ":: ERROR: ${1}"
 }
 
 function _echo_if_be_verbose ()

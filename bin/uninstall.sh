@@ -60,10 +60,8 @@ function _remove_systemd_files ()
     fi
 
     __remove_file "${PATH_TO_THE_SYSTEMD_TIMER_FILE}"
-    __remove_file "/etc/systemd/system/${SYSTEMD_TIMER}"
 
     __remove_file "${PATH_TO_THE_SYSTEMD_SERVICE_FILE}"
-    __remove_file "/etc/systemd/system/${SYSTEMD_SERVICE}"
     #eo: code
 }
 
