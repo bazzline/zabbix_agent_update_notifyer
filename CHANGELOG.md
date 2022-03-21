@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+* Instead of stopping the script, we are now starting the same script with sudo prefix again
+
 ## [0.1.0](https://github.com/bazzline/zabbix_agent_update_notifyer/tree/0.1.0) - released at 20220317
 
 ### Added

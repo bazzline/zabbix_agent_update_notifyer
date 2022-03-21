@@ -152,7 +152,10 @@ function _check_and_setup_system_environment_or_exit ()
 
         if [[ ${IS_DRY_RUN} -ne 1 ]];
         then
-            exit 1
+            #call this script (${0}) again with sudo with all provided arguments (${@})
+            sudo "${0}" "${@}"
+
+            exit ${?}
         fi
     fi
     #eo: check if we are root
