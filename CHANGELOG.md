@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * add check for `cat /etc/zabbix/zabbix_agentd.conf | grep -v '^#\|^$' | grep '^Include='`
     * if grep does not get a hit, we need to add the path to then end of the configuration file
-* add `${ZABBIX_CONFIGURATION_FILE_NAME}`
 * add `README.md#Idea`
 
 ### To Change
@@ -25,6 +24,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+* Changed zabbix agent configuration file
+    * If pacman is detected, the value of `update-notifyer.regular` will always be 0
 * Change zabbix configuration directory to `/usr/local/etc/zabbix_agentd.conf.d`
 * Instead of stopping the script, we are now starting the same script with sudo prefix again
 * Replaced >>PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY<< with >>DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION<<

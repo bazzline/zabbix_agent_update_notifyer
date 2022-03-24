@@ -8,15 +8,15 @@
 
 ####
 # @param: <string: PATH_TO_ZABBIX_AGENT_CONFIGURATION>
-# @param: <string: path_to_the_regular_package_file>
 # @param: <string: path_to_the_security_package_file>
+# [@param: <string: path_to_the_regular_package_file>]
 ####
 function _add_zabbix_agent_configuration ()
 {
     #bo: variable
     local PATH_TO_ZABBIX_AGENT_CONFIGURATION="${1}"
-    local PATH_TO_THE_REGULAR_PACKAGES_FILE="${2}"
-    local PATH_TO_THE_SECURITY_PACKAGES_FILE="${3}"
+    local PATH_TO_THE_REGULAR_PACKAGES_FILE="${3-''}"
+    local PATH_TO_THE_SECURITY_PACKAGES_FILE="${2}"
     #eo: variable
 
     #bo: prepare environment
@@ -47,8 +47,15 @@ function _add_zabbix_agent_configuration ()
 # Treat security and regular updates differently
 ####
 UserParameter=update-notifyer.security,cat ${PATH_TO_THE_SECURITY_PACKAGES_FILE} | wc -l
-UserParameter=update-notifyer.regular,cat ${PATH_TO_THE_REGULAR_PACKAGES_FILE} | wc -l
 DELIM
+
+    ##for pacman, we have to deal with that differently. pacman implies arch linux. arch linux implies each package is important
+    if [[ "${#PATH_TO_REGULAR_PACKAGES_FILE}" -gt 0 ]];
+    then
+        echo "UserParameter=update-notifyer.regular,cat \${PATH_TO_THE_REGULAR_PACKAGES_FILE} | wc -l" >> "${PATH_TO_ZABBIX_AGENT_CONFIGURATION}"
+    else
+        echo "UserParameter=update-notifyer.regular,echo 0" >> "${PATH_TO_ZABBIX_AGENT_CONFIGURATION}"
+    fi
     #eo: creating configuration file
 
     #bo: restart zabbix agent
@@ -106,14 +113,12 @@ DELIM
 
 ####
 # @param: <string: path_to_the_script_file>
-# @param: <string: path_to_regular_packages_file>
 # @param: <string: path_to_security_packages_file>
 ####
 function _create_script_for_pacman ()
 {
     #bo: variable
     local PATH_TO_SCRIPT_FILE="${1}"
-    local PATH_TO_REGULAR_PACKAGES_FILE="${2}"
     local PATH_TO_SECURITY_PACKAGES_FILE="${3}"
     #eo: variable
 
@@ -132,9 +137,6 @@ pacman -Sy
 
 logger -i -p cron.debug "   Creating file >>${PATH_TO_SECURITY_PACKAGES_FILE}<<."
 pacman -Qu > "${PATH_TO_SECURITY_PACKAGES_FILE}"
-
-logger -i -p cron.debug "   Creating file >>${PATH_TO_REGULAR_PACKAGES_FILE}<<."
-cp "${PATH_TO_SECURITY_PACKAGES_FILE}" "${PATH_TO_REGULAR_PACKAGES_FILE}"
 
 logger -i -p cron.info ":: Finished updating of package files."
 DELIM
@@ -411,7 +413,7 @@ function _main ()
 
     if [[ -f /usr/bin/pacman ]];
     then
-        _create_script_for_pacman "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
+        _create_script_for_pacman "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
     elif [[ -f /usr/bin/apt ]];
     then
         _create_script_for_apt "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
@@ -427,7 +429,12 @@ function _main ()
     #take a look on zabbix_mysql_housekeeping/bin/install.sh
     _create_systemd_files "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${FILE_PATH_TO_SYSTEMD_SERVICE_FILE}" "${FILE_PATH_TO_SYSTEMD_TIMER_FILE}"
 
-    _add_zabbix_agent_configuration "${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}/${ZABBIX_AGENT_CONFIGURATION_NAME}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
+    if [[ -f /usr/bin/pacman ]];
+    then
+        _add_zabbix_agent_configuration "${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}/${ZABBIX_AGENT_CONFIGURATION_NAME}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
+    else
+        _add_zabbix_agent_configuration "${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}/${ZABBIX_AGENT_CONFIGURATION_NAME}" "${FILE_PATH_TO_SECURITY_PACKAGES}" "${FILE_PATH_TO_REGULAR_PACKAGES}"
+    fi
 
     _echo_if_be_verbose ":: Finished installation"
     _echo_if_be_verbose "   Please import the template file in path >>${CURRENT_SCRIPT_PATH}/../template/update_notifyer.xml<< in your zabbix server."
