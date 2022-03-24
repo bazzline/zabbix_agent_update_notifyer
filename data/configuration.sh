@@ -6,11 +6,11 @@
 # @author stev leibelt <artodeto@bazzline.net>
 ####
 
-local DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION="/opt/net_bazzline/zabbix_agent/update_notifyer"
 local DIRECTORY_PATH_TO_PACKAGES="/var/local"
-local PACKAGE_NAME="zabbix_agent-update_notifyer"
 local DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION="/usr/local/etc/zabbix_agentd.conf.d"
+local PACKAGE_NAME="zabbix_agent-update_notifyer"
 
+local DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION="/opt/net_bazzline/${PACKAGE_NAME}"
 local FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT="${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}/generate_package_files.sh"
 local FILE_PATH_TO_REGULAR_PACKAGES="${DIRECTORY_PATH_FOR_PACKAGES_FILES}/${PACKAGE_NAME}_-_regular_packages.txt"
 local FILE_PATH_TO_SECURITY_PACKAGES="${DIRECTORY_PATH_FOR_PACKAGES_FILES}/${PACKAGE_NAME}_-_security_packages.txt"
