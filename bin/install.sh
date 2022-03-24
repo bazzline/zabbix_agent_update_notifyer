@@ -10,6 +10,7 @@
 # @param: <string: path_to_the_destination_directory>
 # @param: <string: path_to_the_regular_package_file>
 # @param: <string: path_to_the_security_package_file>
+# @param: <string: ZABBIX_AGENT_CONFIGURATION_NAME>
 ####
 function _add_zabbix_agent_configuration ()
 {
@@ -17,6 +18,7 @@ function _add_zabbix_agent_configuration ()
     local PATH_TO_THE_DESTINATION_DIRECTORY="${1}"
     local PATH_TO_THE_REGULAR_PACKAGES_FILE="${2}"
     local PATH_TO_THE_SECURITY_PACKAGES_FILE="${3}"
+    local ZABBIX_AGENT_CONFIGURATION_NAME="${4}"
     #eo: variable
 
     #bo: prepare environment
@@ -29,7 +31,7 @@ function _add_zabbix_agent_configuration ()
     #eo: prepare environment
 
     #bo: creating configuration file
-    cat > "${PATH_TO_THE_DESTINATION_DIRECTORY}/update_notifyer.conf" <<DELIM
+    cat > "${PATH_TO_THE_DESTINATION_DIRECTORY}/${ZABBIX_AGENT_CONFIGURATION_NAME}" <<DELIM
 ####
 # @see: https://github.com/theranger/zabbix-apt/blob/master/zabbix_agentd.d/apt.conf
 # @since: 2022-03-09
@@ -205,12 +207,12 @@ DELIM
 }
 
 ####
-# @param <string: root_path_to_package_configuration>
+# @param <string: DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION>
 ####
 function _check_and_setup_system_environment_or_exit ()
 {
     #bo: variable
-    local ROOT_PATH_TO_PACKAGE_CONFIGURATION="${1}"
+    local DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION="${1}"
     local WHO_AM_I=$(whoami)
     #eo: variable
 
@@ -252,15 +254,15 @@ function _check_and_setup_system_environment_or_exit ()
     #eo: check if zabbix-agent is installed
 
     #bo: check if this software is already installed
-    if [[ -d "${ROOT_PATH_TO_PACKAGE_CONFIGURATION}" ]];
+    if [[ -d "${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}" ]];
     then
-        _echo_an_error "   Directory >>${ROOT_PATH_TO_PACKAGE_CONFIGURATION}<< does exist."
+        _echo_an_error "   Directory >>${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}<< does exist."
         _echo_an_error "   Looks like installation was already done."
 
         exit 4
     else
-        _echo_if_be_verbose ":: Creating path >>${ROOT_PATH_TO_PACKAGE_CONFIGURATION}<<."
-        mkdir -p "${ROOT_PATH_TO_PACKAGE_CONFIGURATION}"
+        _echo_if_be_verbose ":: Creating path >>${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}<<."
+        mkdir -p "${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}"
 
         if [[ "${?}" -gt 0 ]];
         then
@@ -340,7 +342,7 @@ function _main ()
         #   list below is just there to ease up auto completion
         #FILE_PATH_TO_REGULAR_PACKAGES
         #FILE_PATH_TO_SECURITY_PACKAGES
-        #ROOT_PATH_TO_PACKAGE_CONFIGURATION
+        #DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION
 
         #PATH_TO_SYSTEMD_SERVICE_FILE
         #PATH_TO_SYSTEMD_TIMER_FILE
@@ -379,7 +381,7 @@ function _main ()
 
         local FILE_PATH_TO_REGULAR_PACKAGES="${TEMPORARY_DIRECTORY}${FILE_PATH_TO_REGULAR_PACKAGES}"
         local FILE_PATH_TO_SECURITY_PACKAGES="${TEMPORARY_DIRECTORY}${FILE_PATH_TO_SECURITY_PACKAGES}"
-        local ROOT_PATH_TO_PACKAGE_CONFIGURATION="${TEMPORARY_DIRECTORY}${ROOT_PATH_TO_PACKAGE_CONFIGURATION}"
+        local DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION="${TEMPORARY_DIRECTORY}${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}"
         local PATH_TO_SYSTEMD_SERVICE_FILE="${TEMPORARY_DIRECTORY}${PATH_TO_SYSTEMD_SERVICE_FILE}"
         local PATH_TO_SYSTEMD_TIMER_FILE="${TEMPORARY_DIRECTORY}${PATH_TO_SYSTEMD_TIMER_FILE}"
         local FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT="${TEMPORARY_DIRECTORY}${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}"
@@ -408,7 +410,7 @@ function _main ()
         echo "   PATH_TO_CONFIGURATION_FILE >>${PATH_TO_CONFIGURATION_FILE}<<"
         echo "   FILE_PATH_TO_REGULAR_PACKAGES >>${FILE_PATH_TO_REGULAR_PACKAGES}<<"
         echo "   FILE_PATH_TO_SECURITY_PACKAGES >>${FILE_PATH_TO_SECURITY_PACKAGES}<<"
-        echo "   ROOT_PATH_TO_PACKAGE_CONFIGURATION >>${ROOT_PATH_TO_PACKAGE_CONFIGURATION}<<"
+        echo "   DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION >>${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}<<"
         echo "   PATH_TO_SYSTEMD_SERVICE_FILE >>${PATH_TO_SYSTEMD_SERVICE_FILE}<<"
         echo "   PATH_TO_SYSTEMD_TIMER_FILE >>${PATH_TO_SYSTEMD_TIMER_FILE}<<"
         echo "   FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT >>${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}<<"
@@ -416,7 +418,7 @@ function _main ()
         echo ""
     fi
 
-    _check_and_setup_system_environment_or_exit "${ROOT_PATH_TO_PACKAGE_CONFIGURATION}"
+    _check_and_setup_system_environment_or_exit "${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}"
 
     if [[ -f /usr/bin/pacman ]];
     then
@@ -431,7 +433,7 @@ function _main ()
     #take a look on zabbix_mysql_housekeeping/bin/install.sh
     _create_systemd_files "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${PATH_TO_SYSTEMD_SERVICE_FILE}" "${PATH_TO_SYSTEMD_TIMER_FILE}"
 
-    _add_zabbix_agent_configuration "${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
+    _add_zabbix_agent_configuration "${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}" "${ZABBIX_AGENT_CONFIGURATION_NAME}"
 
     _echo_if_be_verbose ":: Finished installation"
     _echo_if_be_verbose "   Please import the template file in path >>${CURRENT_SCRIPT_PATH}/../template/update_notifyer.xml<< in your zabbix server."

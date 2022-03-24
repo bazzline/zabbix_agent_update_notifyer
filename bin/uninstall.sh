@@ -83,14 +83,19 @@ function _remove_packages_files ()
     #eo: code
 }
 
+####
+# @param: <string: PATH_TO_THE_DESTINATION_DIRECTORY>
+# @param: <string: ZABBIX_AGENT_CONFIGURATION_NAME>
+####
 function _remove_zabbix_agent_configuration ()
 {
     #bo: variable
     local PATH_TO_THE_DESTINATION_DIRECTORY="${1}"
+    local ZABBIX_AGENT_CONFIGURATION_NAME="${2}"
     #eo: variable
 
     #bo: remove configuration file
-    __remove_file "${PATH_TO_THE_DESTINATION_DIRECTORY}/update_notifyer.conf"
+    __remove_file "${PATH_TO_THE_DESTINATION_DIRECTORY}/${ZABBIX_AGENT_CONFIGURATION_NAME}.conf"
     #eo: remove configuration file
 
     #bo: restart zabbix agent
@@ -107,22 +112,22 @@ function _remove_zabbix_agent_configuration ()
 }
 
 ####
-# @param: <string: root_path_to_package_configuration>
+# @param: <string: DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION>
 ####
 function _remove_configuration ()
 {
     #bo: variable
-    local ROOT_PATH_TO_PACKAGE_CONFIGURATION="${1}"
+    local DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION="${1}"
     #eo: variable
 
     #bo: code
-    if [[ -d "${ROOT_PATH_TO_PACKAGE_CONFIGURATION}" ]];
+    if [[ -d "${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}" ]];
     then
-        _echo_if_be_verbose "   Removing directory >>${ROOT_PATH_TO_PACKAGE_CONFIGURATION}<<."
+        _echo_if_be_verbose "   Removing directory >>${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}<<."
 
         if [[ ${IS_DRY_RUN} -ne 1 ]];
         then
-            rm -fr "${ROOT_PATH_TO_PACKAGE_CONFIGURATION}"
+            rm -fr "${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}"
 
             if [[ ${?} -ne 0 ]];
             then
@@ -130,18 +135,18 @@ function _remove_configuration ()
             fi
         fi
     else
-        _echo_an_error "   Expected directory >>${ROOT_PATH_TO_PACKAGE_CONFIGURATION}<< does not exist."
+        _echo_an_error "   Expected directory >>${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}<< does not exist."
     fi
     #eo: code
 }
 
 ####
-# @param <string: root_path_to_package_configuration>
+# @param <string: DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION>
 ####
 function _check_and_setup_system_environment_or_exit ()
 {
     #bo: variable
-    local ROOT_PATH_TO_PACKAGE_CONFIGURATION="${1}"
+    local DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION="${1}"
     local WHO_AM_I=$(whoami)
     #eo: variable
 
@@ -174,9 +179,9 @@ function _check_and_setup_system_environment_or_exit ()
     #bo: check if systemd installed
 
     #bo: check if this software is already installed
-    if [[ ! -d "${ROOT_PATH_TO_PACKAGE_CONFIGURATION}" ]];
+    if [[ ! -d "${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}" ]];
     then
-        _echo_an_error "   Directory >>${ROOT_PATH_TO_PACKAGE_CONFIGURATION}<< does not exist."
+        _echo_an_error "   Directory >>${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}<< does not exist."
         _echo_an_error "   Looks like deinstallation is not needed."
 
         if [[ ${IS_DRY_RUN} -ne 1 ]];
@@ -256,7 +261,7 @@ function _main ()
         #   list below is just there to ease up auto completion
         #FILE_PATH_TO_REGULAR_PACKAGES
         #FILE_PATH_TO_SECURITY_PACKAGES
-        #ROOT_PATH_TO_PACKAGE_CONFIGURATION
+        #DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION
 
         #PATH_TO_SYSTEMD_SERVICE_FILE
         #PATH_TO_SYSTEMD_TIMER_FILE
@@ -305,7 +310,7 @@ function _main ()
         echo "   PATH_TO_CONFIGURATION_FILE >>${PATH_TO_CONFIGURATION_FILE}<<"
         echo "   FILE_PATH_TO_REGULAR_PACKAGES >>${FILE_PATH_TO_REGULAR_PACKAGES}<<"
         echo "   FILE_PATH_TO_SECURITY_PACKAGES >>${FILE_PATH_TO_SECURITY_PACKAGES}<<"
-        echo "   ROOT_PATH_TO_PACKAGE_CONFIGURATION >>${ROOT_PATH_TO_PACKAGE_CONFIGURATION}<<"
+        echo "   DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION >>${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}<<"
         echo "   PATH_TO_SYSTEMD_SERVICE_FILE >>${PATH_TO_SYSTEMD_SERVICE_FILE}<<"
         echo "   PATH_TO_SYSTEMD_TIMER_FILE >>${PATH_TO_SYSTEMD_TIMER_FILE}<<"
         echo "   FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT >>${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}<<"
@@ -313,15 +318,15 @@ function _main ()
         echo ""
     fi
 
-    _check_and_setup_system_environment_or_exit "${ROOT_PATH_TO_PACKAGE_CONFIGURATION}"
+    _check_and_setup_system_environment_or_exit "${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}"
 
     _remove_systemd_files "${PATH_TO_SYSTEMD_SERVICE_FILE}" "${PATH_TO_SYSTEMD_TIMER_FILE}"
 
     _remove_packages_files "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
 
-    _remove_configuration "${ROOT_PATH_TO_PACKAGE_CONFIGURATION}"
+    _remove_configuration "${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}"
 
-    _remove_zabbix_agent_configuration "${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}"
+    _remove_zabbix_agent_configuration "${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}" "${ZABBIX_AGENT_CONFIGURATION_NAME}"
 
     _echo_if_be_verbose ":: Finished deinstallation"
     _echo_if_be_verbose "   Please remove the template file in path >>${CURRENT_SCRIPT_PATH}/../template/update_notifyer.xml<< from your zabbix server (if needed)."
