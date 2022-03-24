@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+* Changed check if scribts are executed as root or not
 * Changed zabbix agent configuration file
     * If pacman is detected, the value of `update-notifyer.regular` will always be 0
 * Change zabbix configuration directory to `/usr/local/etc/zabbix_agentd.conf.d`

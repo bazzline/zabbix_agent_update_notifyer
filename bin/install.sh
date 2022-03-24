@@ -225,21 +225,6 @@ function _check_and_setup_system_environment_or_exit ()
     local WHO_AM_I=$(whoami)
     #eo: variable
 
-    #bo: check if we are root
-    if [[ ${WHO_AM_I} != "root" ]];
-    then
-        _echo_an_error "   Script needs to be executed as root."
-
-        if [[ ${IS_DRY_RUN} -ne 1 ]];
-        then
-            #call this script (${0}) again with sudo with all provided arguments (${@})
-            sudo "${0}" "${@}"
-
-            exit ${?}
-        fi
-    fi
-    #eo: check if we are root
-
     #bo: check if systemd installed
     if [[ ! -d /usr/lib/systemd ]];
     then
@@ -298,6 +283,16 @@ function _echo_if_be_verbose ()
 
 function _main ()
 {
+    #begin of check if we are root
+    if [[ ${WHO_AM_I} != "root" ]];
+    then
+        #call this script (${0}) again with sudo with all provided arguments (${@})
+        sudo "${0}" "${@}"
+
+        exit ${?}
+    fi
+    #end of check if we are root
+
     #bo: variable
     local BE_VERBOSE=0
     local CURRENT_SCRIPT_PATH=$(cd $(dirname "${BASH_SOURCE[0]}"); pwd)
