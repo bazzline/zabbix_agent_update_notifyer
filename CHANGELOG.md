@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 * Added >>ZABBIX_AGENT_CONFIGURATION_NAME<<
+* Added >>FILE_<< in front of >>PATH_TO_SYSTEMD_..<<
 
 ### Changed
 
