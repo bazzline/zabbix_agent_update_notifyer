@@ -215,7 +215,6 @@ function _main ()
     local SHOW_HELP=0
 
     local PATH_TO_CONFIGURATION_FILE="${CURRENT_SCRIPT_PATH}/../data/configuration.sh"
-    local PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY=""   #will be filled up later
 
     while true;
     do
@@ -271,26 +270,6 @@ function _main ()
         . "${PATH_TO_CONFIGURATION_FILE}"
     fi
     
-    if [[ -f /usr/bin/pacman ]];
-    then
-        _echo_if_be_verbose ":: Packagemanager >>pacman<< detected."
-        PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY="/etc/zabbix/zabbix_agentd.conf.d"
-
-    elif [[ -f /usr/bin/apt ]];
-    then
-        _echo_if_be_verbose ":: Packagemanager >>apt<< detected."
-        PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY="/etc/zabbix/zabbix_agentd.d"
-
-    else
-        _echo_if_be_verbose ":: No supported package manager found."
-        _echo_if_be_verbose "   pacman or apt are mandatory right now. Feel free to create a pull request to support more package managers."
-
-        if [[ ${IS_DRY_RUN} -ne 1 ]];
-        then
-            exit 1
-        fi
-    fi
-
     if [[ ${IS_DRY_RUN} -eq 1 ]];
     then
         echo ":: Dry run enabled."
@@ -314,7 +293,7 @@ function _main ()
         echo "   FILE_PATH_TO_SYSTEMD_SERVICE_FILE >>${FILE_PATH_TO_SYSTEMD_SERVICE_FILE}<<"
         echo "   FILE_PATH_TO_SYSTEMD_TIMER_FILE >>${FILE_PATH_TO_SYSTEMD_TIMER_FILE}<<"
         echo "   FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT >>${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}<<"
-        echo "   PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY >>${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}<<"
+        echo "   DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION >>${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}<<"
         echo ""
     fi
 
@@ -326,7 +305,7 @@ function _main ()
 
     _remove_configuration "${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}"
 
-    _remove_zabbix_agent_configuration "${PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION_DIRECTORY}" "${ZABBIX_AGENT_CONFIGURATION_NAME}"
+    _remove_zabbix_agent_configuration "${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}" "${ZABBIX_AGENT_CONFIGURATION_NAME}"
 
     _echo_if_be_verbose ":: Finished deinstallation"
     _echo_if_be_verbose "   Please remove the template file in path >>${CURRENT_SCRIPT_PATH}/../template/update_notifyer.xml<< from your zabbix server (if needed)."
