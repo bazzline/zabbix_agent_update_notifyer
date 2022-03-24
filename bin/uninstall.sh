@@ -84,18 +84,16 @@ function _remove_packages_files ()
 }
 
 ####
-# @param: <string: PATH_TO_THE_DESTINATION_DIRECTORY>
-# @param: <string: ZABBIX_AGENT_CONFIGURATION_NAME>
+# @param: <string: PATH_TO_ZABBIX_AGENT_CONFIGURATION>
 ####
 function _remove_zabbix_agent_configuration ()
 {
     #bo: variable
-    local PATH_TO_THE_DESTINATION_DIRECTORY="${1}"
-    local ZABBIX_AGENT_CONFIGURATION_NAME="${2}"
+    local PATH_TO_ZABBIX_AGENT_CONFIGURATION="${1}"
     #eo: variable
 
     #bo: remove configuration file
-    __remove_file "${PATH_TO_THE_DESTINATION_DIRECTORY}/${ZABBIX_AGENT_CONFIGURATION_NAME}.conf"
+    __remove_file "${PATH_TO_ZABBIX_AGENT_CONFIGURATION}"
     #eo: remove configuration file
 
     #bo: restart zabbix agent
@@ -305,7 +303,7 @@ function _main ()
 
     _remove_configuration "${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}"
 
-    _remove_zabbix_agent_configuration "${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}" "${ZABBIX_AGENT_CONFIGURATION_NAME}"
+    _remove_zabbix_agent_configuration "${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}/${ZABBIX_AGENT_CONFIGURATION_NAME}"
 
     _echo_if_be_verbose ":: Finished deinstallation"
     _echo_if_be_verbose "   Please remove the template file in path >>${CURRENT_SCRIPT_PATH}/../template/update_notifyer.xml<< from your zabbix server (if needed)."

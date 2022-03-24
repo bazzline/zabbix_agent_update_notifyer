@@ -7,26 +7,33 @@
 ####
 
 ####
-# @param: <string: path_to_the_destination_directory>
+# @param: <string: PATH_TO_ZABBIX_AGENT_CONFIGURATION>
 # @param: <string: path_to_the_regular_package_file>
 # @param: <string: path_to_the_security_package_file>
-# @param: <string: ZABBIX_AGENT_CONFIGURATION_NAME>
 ####
 function _add_zabbix_agent_configuration ()
 {
     #bo: variable
-    local PATH_TO_THE_DESTINATION_DIRECTORY="${1}"
+    local PATH_TO_ZABBIX_AGENT_CONFIGURATION="${1}"
     local PATH_TO_THE_REGULAR_PACKAGES_FILE="${2}"
     local PATH_TO_THE_SECURITY_PACKAGES_FILE="${3}"
-    local ZABBIX_AGENT_CONFIGURATION_NAME="${4}"
     #eo: variable
 
     #bo: prepare environment
-    if [[ ! -d "${PATH_TO_THE_DESTINATION_DIRECTORY}" ]];
-    then
-        _echo_if_be_verbose ":: Creating path >>${PATH_TO_THE_DESTINATION_DIRECTORY}<<."
+    local DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION=$(dirname "${PATH_TO_ZABBIX_AGENT_CONFIGURATION}")
 
-        mkdir -p "${PATH_TO_THE_DESTINATION_DIRECTORY}"
+    if [[ ! -d "${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}" ]];
+    then
+        _echo_if_be_verbose ":: Creating path >>${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}<<."
+
+        mkdir -p "${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}"
+
+        if [[ $? -ne 0 ]];
+        then
+            echo ":: Could not create directory >>${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}<<."
+
+            exit 1
+        fi
     fi
     #eo: prepare environment
 
@@ -420,7 +427,7 @@ function _main ()
     #take a look on zabbix_mysql_housekeeping/bin/install.sh
     _create_systemd_files "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${FILE_PATH_TO_SYSTEMD_SERVICE_FILE}" "${FILE_PATH_TO_SYSTEMD_TIMER_FILE}"
 
-    _add_zabbix_agent_configuration "${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}" "${ZABBIX_AGENT_CONFIGURATION_NAME}"
+    _add_zabbix_agent_configuration "${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}/${ZABBIX_AGENT_CONFIGURATION_NAME}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
 
     _echo_if_be_verbose ":: Finished installation"
     _echo_if_be_verbose "   Please import the template file in path >>${CURRENT_SCRIPT_PATH}/../template/update_notifyer.xml<< in your zabbix server."
