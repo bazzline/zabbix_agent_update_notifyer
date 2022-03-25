@@ -195,6 +195,7 @@ function _main ()
     local CURRENT_SCRIPT_PATH=$(cd $(dirname "${BASH_SOURCE[0]}"); pwd)
     local IS_DRY_RUN=0
     local SHOW_HELP=0
+    local WHO_AM_I=$(whoami)
 
     local PATH_TO_CONFIGURATION_FILE="${CURRENT_SCRIPT_PATH}/../data/configuration.sh"
 

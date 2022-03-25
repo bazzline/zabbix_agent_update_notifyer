@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+* Fixed issue in `bin/uninstall.sh` if it is not executed as root
+
 ## [0.2.1](https://github.com/bazzline/zabbix_agent_update_notifyer/tree/0.2.1) - released at 20220325
 
 ### Changed
