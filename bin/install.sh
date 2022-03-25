@@ -38,7 +38,7 @@ function _add_zabbix_agent_configuration ()
     #eo: prepare environment
 
     #bo: creating configuration file
-    cat > "${PATH_TO_THE_DESTINATION_DIRECTORY}/${ZABBIX_AGENT_CONFIGURATION_NAME}" <<DELIM
+    cat > "${PATH_TO_ZABBIX_AGENT_CONFIGURATION}" <<DELIM
 ####
 # @see: https://github.com/theranger/zabbix-apt/blob/master/zabbix_agentd.d/apt.conf
 # @since: 2022-03-09
@@ -119,7 +119,7 @@ function _create_script_for_pacman ()
 {
     #bo: variable
     local PATH_TO_SCRIPT_FILE="${1}"
-    local PATH_TO_SECURITY_PACKAGES_FILE="${3}"
+    local PATH_TO_SECURITY_PACKAGES_FILE="${2}"
     #eo: variable
 
     cat > "${PATH_TO_SCRIPT_FILE}" <<DELIM
@@ -399,7 +399,7 @@ function _main ()
             echo ":: No package manager detected."
             echo "   Available package managers are: 1.) apt   2.) pacman"
             echo ""
-            echo "   Please enter the number of the package manager you want to use."
+            echo "   Please enter the number of the package manager you want to use. Pacman is default"
 
             read USER_INPUT_PACKAGE_MANAGER_NUMBER
 
