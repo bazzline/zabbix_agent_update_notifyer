@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### To Add
 
+* add .version file for possible future update mechanism
 * add check for `cat /etc/zabbix/zabbix_agentd.conf | grep -v '^#\|^$' | grep '^Include='`
     * if grep does not get a hit, we need to add the path to then end of the configuration file
 * add `README.md#Idea`
@@ -24,6 +25,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+* Moved package manager detection into a variable and with that into the configuration file
+* Changed the way we are dealing with dry run
 * Changed check if scribts are executed as root or not
 * Changed zabbix agent configuration file
     * If pacman is detected, the value of `update-notifyer.regular` will always be 0

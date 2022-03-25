@@ -190,16 +190,6 @@ function _echo_if_be_verbose ()
 
 function _main ()
 {
-    #begin of check if we are root
-    if [[ ${WHO_AM_I} != "root" ]];
-    then
-        #call this script (${0}) again with sudo with all provided arguments (${@})
-        sudo "${0}" "${@}"
-
-        exit ${?}
-    fi
-    #end of check if we are root
-
     #bo: variable
     local BE_VERBOSE=0
     local CURRENT_SCRIPT_PATH=$(cd $(dirname "${BASH_SOURCE[0]}"); pwd)
@@ -239,6 +229,19 @@ function _main ()
         exit 0
     fi
 
+    #begin of check if we are root
+    if [[ ${WHO_AM_I} != "root" ]];
+    then
+        if [[ ${IS_DRY_RUN} -ne 1 ]];
+        then
+            #call this script (${0}) again with sudo with all provided arguments (${@})
+            sudo "${0}" "${@}"
+
+            exit ${?}
+        fi
+    fi
+    #end of check if we are root
+
     _echo_if_be_verbose ":: Starting deinstallation"
 
     if [[ ! -f ${PATH_TO_CONFIGURATION_FILE} ]];
@@ -277,15 +280,19 @@ function _main ()
         echo "   SHOW_HELP >>${SHOW_HELP}<<."
         echo ""
         echo "   ==== VARIABLES ===="
-        echo "   CURRENT_SCRIPT_PATH >>${CURRENT_SCRIPT_PATH}<<."
-        echo "   PATH_TO_CONFIGURATION_FILE >>${PATH_TO_CONFIGURATION_FILE}<<"
-        echo "   FILE_PATH_TO_REGULAR_PACKAGES >>${FILE_PATH_TO_REGULAR_PACKAGES}<<"
-        echo "   FILE_PATH_TO_SECURITY_PACKAGES >>${FILE_PATH_TO_SECURITY_PACKAGES}<<"
-        echo "   DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION >>${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}<<"
-        echo "   FILE_PATH_TO_SYSTEMD_SERVICE_FILE >>${FILE_PATH_TO_SYSTEMD_SERVICE_FILE}<<"
-        echo "   FILE_PATH_TO_SYSTEMD_TIMER_FILE >>${FILE_PATH_TO_SYSTEMD_TIMER_FILE}<<"
-        echo "   FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT >>${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}<<"
-        echo "   DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION >>${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}<<"
+        echo "   DIRECTORY_PATH_TO_PACKAGES=${DIRECTORY_PATH_TO_PACKAGES}"
+        echo "   DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION=${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}"
+        echo "   PACKAGE_NAME=${PACKAGE_NAME}"
+        echo "   PACKAGE_MANAGER=${PACKAGE_MANAGER}"
+        echo "   PACKAGE_VERSION=${PACKAGE_VERSION}"
+        echo "   DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION=${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}"
+        echo "   FILE_PATH_TO_PACKAGE_VERSION=${FILE_PATH_TO_PACKAGE_VERSION}"
+        echo "   FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT=${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}"
+        echo "   FILE_PATH_TO_REGULAR_PACKAGES=${FILE_PATH_TO_REGULAR_PACKAGES}"
+        echo "   FILE_PATH_TO_SECURITY_PACKAGES=${FILE_PATH_TO_SECURITY_PACKAGES}"
+        echo "   FILE_PATH_TO_SYSTEMD_SERVICE_FILE=${FILE_PATH_TO_SYSTEMD_SERVICE_FILE}"
+        echo "   FILE_PATH_TO_SYSTEMD_TIMER_FILE=${FILE_PATH_TO_SYSTEMD_TIMER_FILE}"
+        echo "   ZABBIX_AGENT_CONFIGURATION_NAME=${ZABBIX_AGENT_CONFIGURATION_NAME}"
         echo ""
     fi
 

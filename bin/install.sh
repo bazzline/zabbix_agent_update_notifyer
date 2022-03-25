@@ -283,16 +283,6 @@ function _echo_if_be_verbose ()
 
 function _main ()
 {
-    #begin of check if we are root
-    if [[ ${WHO_AM_I} != "root" ]];
-    then
-        #call this script (${0}) again with sudo with all provided arguments (${@})
-        sudo "${0}" "${@}"
-
-        exit ${?}
-    fi
-    #end of check if we are root
-
     #bo: variable
     local BE_VERBOSE=0
     local CURRENT_SCRIPT_PATH=$(cd $(dirname "${BASH_SOURCE[0]}"); pwd)
@@ -332,6 +322,19 @@ function _main ()
         exit 0
     fi
 
+    #begin of check if we are root
+    if [[ ${WHO_AM_I} != "root" ]];
+    then
+        if [[ ${IS_DRY_RUN} -ne 1 ]];
+        then
+            #call this script (${0}) again with sudo with all provided arguments (${@})
+            sudo "${0}" "${@}"
+
+            exit ${?}
+        fi
+    fi
+    #end of check if we are root
+
     _echo_if_be_verbose ":: Starting installation"
 
     if [[ ! -f ${PATH_TO_CONFIGURATION_FILE} ]];
@@ -341,15 +344,7 @@ function _main ()
 
         exit 1
     else
-        #loads the following variables.
-        #   list below is just there to ease up auto completion
-        #FILE_PATH_TO_REGULAR_PACKAGES
-        #FILE_PATH_TO_SECURITY_PACKAGES
-        #DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION
-
-        #FILE_PATH_TO_SYSTEMD_SERVICE_FILE
-        #FILE_PATH_TO_SYSTEMD_TIMER_FILE
-        #FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT
+        local OPTIONAL_PATH_PREFIX=""
 
         _echo_if_be_verbose ":: Sourcing file >>${PATH_TO_CONFIGURATION_FILE}<<."
         . "${PATH_TO_CONFIGURATION_FILE}"
@@ -357,28 +352,43 @@ function _main ()
     
     if [[ ${IS_DRY_RUN} -eq 1 ]];
     then
-        local TEMPORARY_DIRECTORY=$(mktemp -d)
+        #dry means we are defining the prefixing each path with a temporary
+        local OPTIONAL_PATH_PREFIX=$(mktemp -d)
+
+        . "${PATH_TO_CONFIGURATION_FILE}"
 
         echo ":: Dry run enabled."
-        echo "   Every path variable will be prefixed with >>${TEMPORARY_DIRECTORY}<<."
+        echo "   Every path variable will be prefixed with >>${OPTIONAL_PATH_PREFIX}<<."
         echo "   This directory won't be removed outomatically!"
         echo "   Please remove it after finishing the investigation."
         echo ""
 
-        local FILE_PATH_TO_REGULAR_PACKAGES="${TEMPORARY_DIRECTORY}${FILE_PATH_TO_REGULAR_PACKAGES}"
-        local FILE_PATH_TO_SECURITY_PACKAGES="${TEMPORARY_DIRECTORY}${FILE_PATH_TO_SECURITY_PACKAGES}"
-        local DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION="${TEMPORARY_DIRECTORY}${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}"
-        local FILE_PATH_TO_SYSTEMD_SERVICE_FILE="${TEMPORARY_DIRECTORY}${FILE_PATH_TO_SYSTEMD_SERVICE_FILE}"
-        local FILE_PATH_TO_SYSTEMD_TIMER_FILE="${TEMPORARY_DIRECTORY}${FILE_PATH_TO_SYSTEMD_TIMER_FILE}"
-        local FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT="${TEMPORARY_DIRECTORY}${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}"
-        local DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION="${TEMPORARY_DIRECTORY}${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}"
+        if [[ ${PACKAGE_MANAGER} == "" ]];
+        then
+            echo ":: No package manager detected."
+            echo "   Available package managers are: 1.) apt   2.) pacman"
+            echo ""
+            echo "   Please enter the number of the package manager you want to use."
 
-        local DIRECTORY_PATH_FOR_PACKAGES_FILES=$(dirname "${FILE_PATH_TO_REGULAR_PACKAGES}")
+            read USER_INPUT_PACKAGE_MANAGER_NUMBER
 
-        echo "   Creating path >>${DIRECTORY_PATH_FOR_PACKAGES_FILES}<<."
-        mkdir -p "${DIRECTORY_PATH_FOR_PACKAGES_FILES}"
+            case ${USER_INPUT_PACKAGE_MANAGER_NUMBER} in
+                1)
+                    PACKAGE_MANAGER="apt"
+                    ;;
+                2)
+                    PACKAGE_MANAGER="pacman"
+                    ;;
+                *)
+                    PACKAGE_MANAGER="pacman"
+                    ;;
+            esac
+        fi
 
-        echo "   Creating path >>${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}<<."
+        echo "   Creating path DIRECTORY_PATH_TO_PACKAGES >>${DIRECTORY_PATH_TO_PACKAGES}<<."
+        mkdir -p "${DIRECTORY_PATH_TO_PACKAGES}"
+
+        echo "   Creating path DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION >>${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}<<."
         mkdir -p "${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}"
     fi
 
@@ -392,24 +402,30 @@ function _main ()
         echo "   SHOW_HELP >>${SHOW_HELP}<<."
         echo ""
         echo "   ==== VARIABLES ===="
-        echo "   CURRENT_SCRIPT_PATH >>${CURRENT_SCRIPT_PATH}<<."
-        echo "   PATH_TO_CONFIGURATION_FILE >>${PATH_TO_CONFIGURATION_FILE}<<"
-        echo "   FILE_PATH_TO_REGULAR_PACKAGES >>${FILE_PATH_TO_REGULAR_PACKAGES}<<"
-        echo "   FILE_PATH_TO_SECURITY_PACKAGES >>${FILE_PATH_TO_SECURITY_PACKAGES}<<"
-        echo "   DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION >>${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}<<"
-        echo "   FILE_PATH_TO_SYSTEMD_SERVICE_FILE >>${FILE_PATH_TO_SYSTEMD_SERVICE_FILE}<<"
-        echo "   FILE_PATH_TO_SYSTEMD_TIMER_FILE >>${FILE_PATH_TO_SYSTEMD_TIMER_FILE}<<"
-        echo "   FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT >>${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}<<"
-        echo "   DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION >>${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}<<"
+        echo "   DIRECTORY_PATH_TO_PACKAGES=${DIRECTORY_PATH_TO_PACKAGES}"
+        echo "   DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION=${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}"
+        echo "   PACKAGE_NAME=${PACKAGE_NAME}"
+        echo "   PACKAGE_MANAGER=${PACKAGE_MANAGER}"
+        echo "   PACKAGE_VERSION=${PACKAGE_VERSION}"
+        echo "   DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION=${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}"
+        echo "   FILE_PATH_TO_PACKAGE_VERSION=${FILE_PATH_TO_PACKAGE_VERSION}"
+        echo "   FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT=${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}"
+        echo "   FILE_PATH_TO_REGULAR_PACKAGES=${FILE_PATH_TO_REGULAR_PACKAGES}"
+        echo "   FILE_PATH_TO_SECURITY_PACKAGES=${FILE_PATH_TO_SECURITY_PACKAGES}"
+        echo "   FILE_PATH_TO_SYSTEMD_SERVICE_FILE=${FILE_PATH_TO_SYSTEMD_SERVICE_FILE}"
+        echo "   FILE_PATH_TO_SYSTEMD_TIMER_FILE=${FILE_PATH_TO_SYSTEMD_TIMER_FILE}"
+        echo "   ZABBIX_AGENT_CONFIGURATION_NAME=${ZABBIX_AGENT_CONFIGURATION_NAME}"
         echo ""
     fi
 
+    #bo: core code
     _check_and_setup_system_environment_or_exit "${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}"
 
-    if [[ -f /usr/bin/pacman ]];
+
+    if [[ "${PACKAGE_MANAGER}" == "pacman" ]];
     then
         _create_script_for_pacman "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
-    elif [[ -f /usr/bin/apt ]];
+    elif [[ "${PACKAGE_MANAGER}" == "apt" ]];
     then
         _create_script_for_apt "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
     else
@@ -424,7 +440,7 @@ function _main ()
     #take a look on zabbix_mysql_housekeeping/bin/install.sh
     _create_systemd_files "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${FILE_PATH_TO_SYSTEMD_SERVICE_FILE}" "${FILE_PATH_TO_SYSTEMD_TIMER_FILE}"
 
-    if [[ -f /usr/bin/pacman ]];
+    if [[ "${PACKAGE_MANAGER}" == "pacman" ]];
     then
         _add_zabbix_agent_configuration "${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}/${ZABBIX_AGENT_CONFIGURATION_NAME}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
     else
@@ -433,6 +449,7 @@ function _main ()
 
     _echo_if_be_verbose ":: Finished installation"
     _echo_if_be_verbose "   Please import the template file in path >>${CURRENT_SCRIPT_PATH}/../template/update_notifyer.xml<< in your zabbix server."
+    #eo: core code
     #eo: code
 }
 
