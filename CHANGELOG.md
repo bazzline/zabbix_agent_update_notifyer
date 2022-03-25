@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### To Add
 
-* add check for `cat /etc/zabbix/zabbix_agentd.conf | grep -v '^#\|^$' | grep '^Include='`
-    * if grep does not get a hit, we need to add the path to then end of the configuration file
 * add `README.md#Idea`
 
 ### To Change
@@ -19,9 +17,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+## [0.2.0](https://github.com/bazzline/zabbix_agent_update_notifyer/tree/0.2.0) - released at 20220325
+
+### Added
+
 * Added .version file for possible future update mechanism
 * Added >>ZABBIX_AGENT_CONFIGURATION_NAME<<
 * Added >>FILE_<< in front of >>PATH_TO_SYSTEMD_..<<
+* Added check for `cat /etc/zabbix/zabbix_agentd.conf | grep -v '^#\|^$' | grep '^Include='`
+    * If grep does not get a hit, we are adding the path to then end of the configuration file
 
 ### Changed
 

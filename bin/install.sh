@@ -7,16 +7,18 @@
 ####
 
 ####
-# @param: <string: PATH_TO_ZABBIX_AGENT_CONFIGURATION>
+# @param: <string: PATH_TO_OUR_ZABBIX_AGENT_CONFIGURATION>
+# @param: <string: FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION>
 # @param: <string: path_to_the_security_package_file>
 # [@param: <string: path_to_the_regular_package_file>]
 ####
 function _add_zabbix_agent_configuration ()
 {
     #bo: variable
+    local FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION="${2}"
     local PATH_TO_ZABBIX_AGENT_CONFIGURATION="${1}"
-    local PATH_TO_THE_REGULAR_PACKAGES_FILE="${3-''}"
-    local PATH_TO_THE_SECURITY_PACKAGES_FILE="${2}"
+    local PATH_TO_THE_REGULAR_PACKAGES_FILE="${4-''}"
+    local PATH_TO_THE_SECURITY_PACKAGES_FILE="${3}"
     #eo: variable
 
     #bo: prepare environment
@@ -57,6 +59,21 @@ DELIM
         echo "UserParameter=update-notifyer.regular,echo 0" >> "${PATH_TO_ZABBIX_AGENT_CONFIGURATION}"
     fi
     #eo: creating configuration file
+
+    #bo: add additonal configuration file path to zabbix_agentd.conf, if needed
+    ##we are checking if the include path is not commented out
+    ##since we are using grep, we need to escape >>*<<
+    local EXPECTED_STRING_FOR_GREP="Include=${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}/\*.conf"
+    local EXPECTED_STRING_FOR_ECHO="Include=${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}/*.conf"
+
+    if cat "${FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION}" | grep -v '^#\|^$' | grep -q "^${EXPECTED_STRING_FOR_GREP}"
+    then
+        _echo_if_be_verbose "    Expected string >>${EXPECTED_STRING_FOR_ECHO}<< was found in >>${FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION}<<."
+    else
+        _echo_if_be_verbose "    Adding >>${EXPECTED_STRING_FOR_ECHO}<< to >>${FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION}<<."
+        echo "${EXPECTED_STRING_FOR_ECHO}" > "${FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION}"
+    fi
+    #eo: add additonal configuration file path to zabbix_agentd.conf, if needed
 
     #bo: restart zabbix agent
     if systemctl is-active --quiet zabbix-agent.service;
@@ -416,6 +433,11 @@ function _main ()
             esac
         fi
 
+        local DIRECTORY_FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION=$(dirname "${FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION}")
+
+        echo "   Creating path DIRECTORY_FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION >>${DIRECTORY_FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION}<<."
+        mkdir -p "${DIRECTORY_FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION}"
+
         echo "   Creating path DIRECTORY_PATH_TO_PACKAGES >>${DIRECTORY_PATH_TO_PACKAGES}<<."
         mkdir -p "${DIRECTORY_PATH_TO_PACKAGES}"
 
@@ -445,6 +467,7 @@ function _main ()
         echo "   FILE_PATH_TO_SECURITY_PACKAGES=${FILE_PATH_TO_SECURITY_PACKAGES}"
         echo "   FILE_PATH_TO_SYSTEMD_SERVICE_FILE=${FILE_PATH_TO_SYSTEMD_SERVICE_FILE}"
         echo "   FILE_PATH_TO_SYSTEMD_TIMER_FILE=${FILE_PATH_TO_SYSTEMD_TIMER_FILE}"
+        echo "   FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION=${FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION}"
         echo "   ZABBIX_AGENT_CONFIGURATION_NAME=${ZABBIX_AGENT_CONFIGURATION_NAME}"
         echo ""
     fi
@@ -467,9 +490,9 @@ function _main ()
 
     if [[ "${PACKAGE_MANAGER}" == "pacman" ]];
     then
-        _add_zabbix_agent_configuration "${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}/${ZABBIX_AGENT_CONFIGURATION_NAME}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
+        _add_zabbix_agent_configuration "${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}/${ZABBIX_AGENT_CONFIGURATION_NAME}" "${FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
     else
-        _add_zabbix_agent_configuration "${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}/${ZABBIX_AGENT_CONFIGURATION_NAME}" "${FILE_PATH_TO_SECURITY_PACKAGES}" "${FILE_PATH_TO_REGULAR_PACKAGES}"
+        _add_zabbix_agent_configuration "${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}/${ZABBIX_AGENT_CONFIGURATION_NAME}" "${FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION}" "${FILE_PATH_TO_SECURITY_PACKAGES}" "${FILE_PATH_TO_REGULAR_PACKAGES}"
     fi
 
     echo "${PACKAGE_VERSION}" > "${FILE_PATH_TO_PACKAGE_VERSION}"
