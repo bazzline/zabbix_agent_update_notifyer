@@ -25,7 +25,7 @@ git clone https://github.com/bazzline/zabbix_agent_update_notifyer .
 #call >>install.sh -d<< for dry run usage
 #call >>install.sh -v<< for verbose output
 #if needed, change the configuration by adapting >>data/configuration.sh<<
-sudo bash bin/install.sh
+./bin/install.sh
 
 #import the template in template/update_notifyer.xml
 # in your zabbix server
@@ -48,7 +48,7 @@ git clone https://github.com/bazzline/zabbix_agent_update_notifyer .
 #call >>uninstall.sh -d<< for dry run usage
 #call >>uninstall.sh -v<< for verbose output
 #if needed, change the configuration by adapting >>data/configuration.sh<<
-sudo bash bin/uninstall.sh
+./bin/uninstall.sh
 
 cd ${WORKING_DIRECTORY}
 
