@@ -217,12 +217,15 @@ DELIM
 
 ####
 # @param <string: DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION>
+# @param <string: FILE_PATH_TO_PACKAGE_VERSION>
+# @param <string: PACKAGE_MANAGER>
 ####
 function _check_and_setup_system_environment_or_exit ()
 {
     #bo: variable
     local DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION="${1}"
-    local WHO_AM_I=$(whoami)
+    local FILE_PATH_TO_PACKAGE_VERSION="${2}"
+    local PACKAGE_MANAGER="${2}"
     #eo: variable
 
     #bo: check if systemd installed
@@ -231,7 +234,7 @@ function _check_and_setup_system_environment_or_exit ()
         _echo_an_error "   Directory >>/usr/lib/systemd<< does not exist."
         _echo_an_error "   Systemd is mandatory right now. Feel free to create a pull request to support multiple init systems."
 
-        exit 2
+        _exit_if_no_dry_run 2
     fi
     #bo: check if systemd installed
 
@@ -243,7 +246,7 @@ function _check_and_setup_system_environment_or_exit ()
         _echo_an_error "   Systemd service file >>zabbix-agent.service<< not found."
         _echo_an_error "   Please install zabbix agent first."
 
-        exit 3
+        _exit_if_no_dry_run 3
     fi
     #eo: check if zabbix-agent is installed
 
@@ -253,7 +256,7 @@ function _check_and_setup_system_environment_or_exit ()
         _echo_an_error "   Directory >>${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}<< does exist."
         _echo_an_error "   Looks like installation was already done."
 
-        exit 4
+        _exit_if_no_dry_run 4
     else
         _echo_if_be_verbose ":: Creating path >>${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}<<."
         mkdir -p "${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}"
@@ -262,10 +265,29 @@ function _check_and_setup_system_environment_or_exit ()
         then
             _echo_an_error "   Could not create it. mkdir return code was >>${?}<<."
 
-            exit 5
+            _exit_if_no_dry_run 5
         fi
     fi
     #eo: check if this software is already installed
+
+    #bo: is installed already
+    if [[ -f "${FILE_PATH_TO_PACKAGE_VERSION}" ]];
+    then
+        _echo_an_error "   Package is already installed."
+        _echo_an_error "   File >>${FILE_PATH_TO_PACKAGE_VERSION}<< exists."
+
+        _exit_if_no_dry_run 6
+    fi
+    #eo: is installed already
+
+    #bo: package manager check
+    if [[ ${#PACKAGE_MANAGER} -eq 0 ]];
+    then
+        _echo_an_error "   No supported packagemanager detected."
+
+        _exit_if_no_dry_run 7
+    fi
+    #eo: package manager check
 }
 
 function _echo_an_error ()
@@ -281,6 +303,14 @@ function _echo_if_be_verbose ()
     fi
 }
 
+function _exit_if_no_dry_run ()
+{
+    if [[ ${IS_DRY_RUN} -ne 1 ]];
+    then
+        exit ${1:-1}
+    fi
+}
+
 function _main ()
 {
     #bo: variable
@@ -288,6 +318,7 @@ function _main ()
     local CURRENT_SCRIPT_PATH=$(cd $(dirname "${BASH_SOURCE[0]}"); pwd)
     local IS_DRY_RUN=0
     local SHOW_HELP=0
+    local WHO_AM_I=$(whoami)
 
     local PATH_TO_CONFIGURATION_FILE="${CURRENT_SCRIPT_PATH}/../data/configuration.sh"
 
@@ -323,7 +354,7 @@ function _main ()
     fi
 
     #begin of check if we are root
-    if [[ ${WHO_AM_I} != "root" ]];
+    if [[ "${WHO_AM_I}" != "root" ]];
     then
         if [[ ${IS_DRY_RUN} -ne 1 ]];
         then
@@ -363,7 +394,7 @@ function _main ()
         echo "   Please remove it after finishing the investigation."
         echo ""
 
-        if [[ ${PACKAGE_MANAGER} == "" ]];
+        if [[ ${#PACKAGE_MANAGER} -eq 0 ]];
         then
             echo ":: No package manager detected."
             echo "   Available package managers are: 1.) apt   2.) pacman"
@@ -419,8 +450,7 @@ function _main ()
     fi
 
     #bo: core code
-    _check_and_setup_system_environment_or_exit "${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}"
-
+    _check_and_setup_system_environment_or_exit "${DIRECTORY_PATH_TO_PACKAGE_CONFIGURATION}" "${FILE_PATH_TO_PACKAGE_VERSION}" "${PACKAGE_MANAGER}"
 
     if [[ "${PACKAGE_MANAGER}" == "pacman" ]];
     then
@@ -428,11 +458,6 @@ function _main ()
     elif [[ "${PACKAGE_MANAGER}" == "apt" ]];
     then
         _create_script_for_apt "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}" "${FILE_PATH_TO_REGULAR_PACKAGES}" "${FILE_PATH_TO_SECURITY_PACKAGES}"
-    else
-        _echo_if_be_verbose ":: No supported package manager found."
-        _echo_if_be_verbose "   pacman or apt are mandatory right now. Feel free to create a pull request to support more package managers."
-
-        exit 2
     fi
 
     chmod +x "${FILE_PATH_TO_PACKAGE_FILES_GENERATION_SCRIPT}"
@@ -446,6 +471,8 @@ function _main ()
     else
         _add_zabbix_agent_configuration "${DIRECTORY_PATH_TO_THE_ZABBIX_AGENT_CONFIGURATION}/${ZABBIX_AGENT_CONFIGURATION_NAME}" "${FILE_PATH_TO_SECURITY_PACKAGES}" "${FILE_PATH_TO_REGULAR_PACKAGES}"
     fi
+
+    echo "${PACKAGE_VERSION}" > "${FILE_PATH_TO_PACKAGE_VERSION}"
 
     _echo_if_be_verbose ":: Finished installation"
     _echo_if_be_verbose "   Please import the template file in path >>${CURRENT_SCRIPT_PATH}/../template/update_notifyer.xml<< in your zabbix server."

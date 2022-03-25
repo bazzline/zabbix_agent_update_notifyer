@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### To Add
 
-* add .version file for possible future update mechanism
 * add check for `cat /etc/zabbix/zabbix_agentd.conf | grep -v '^#\|^$' | grep '^Include='`
     * if grep does not get a hit, we need to add the path to then end of the configuration file
 * add `README.md#Idea`
@@ -20,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+* Added .version file for possible future update mechanism
 * Added >>ZABBIX_AGENT_CONFIGURATION_NAME<<
 * Added >>FILE_<< in front of >>PATH_TO_SYSTEMD_..<<
 
