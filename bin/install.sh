@@ -71,7 +71,7 @@ DELIM
         _echo_if_be_verbose "    Expected string >>${EXPECTED_STRING_FOR_ECHO}<< was found in >>${FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION}<<."
     else
         _echo_if_be_verbose "    Adding >>${EXPECTED_STRING_FOR_ECHO}<< to >>${FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION}<<."
-        echo "${EXPECTED_STRING_FOR_ECHO}" > "${FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION}"
+        echo "${EXPECTED_STRING_FOR_ECHO}" >> "${FILE_PATH_TO_ZABBIX_AGENT_CONFIGURATION}"
     fi
     #eo: add additonal configuration file path to zabbix_agentd.conf, if needed
 
