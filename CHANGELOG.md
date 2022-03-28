@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+## [1.0.0](https://github.com/bazzline/zabbix_agent_update_notifyer/tree/1.0.0) - released at 20220328
+
 * Added `README.md#Idea`
 
 ### Changed
