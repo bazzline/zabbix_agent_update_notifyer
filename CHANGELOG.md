@@ -9,13 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### To Add
 
-* add `README.md#Idea`
-
 ### To Change
 
 ## [Unreleased]
 
 ### Added
+
+* Added `README.md#Idea`
 
 ### Changed
 
