@@ -82,10 +82,11 @@ The package manager is used to update it's database. After that, the database is
 For `apt`, we are able to distinguish between security and regular packages. For `pacman`, because of the nature of arch linux, each package is security related.   
 The informations of the packages are stored in the file paths `/var/local/zabbix_agent-update_notifyer_-_security_packages.txt` and `/var/local/zabbix_agent-update_notifyer_-_regular_packages.txt`.
 
-The generated files containing the information of the updateable packages are processed by the zabbix agent. A dedicated configuration file is created in `/usr/local/etc/zabbix_agentd.conf.d/zabbix_agent-update_notifyer.conf`. The file `/etc/zabbix/zabbix_agentd.conf` is enriched by the line `Include=/usr/local/etc/zabbix_agentd.conf.d/*.conf` to load the configuration file.   
+The generated files with the information of the updateable packages are processed by the zabbix agent. A dedicated configuration file is created in `/usr/local/etc/zabbix_agentd.conf.d/zabbix_agent-update_notifyer.conf`. The file `/etc/zabbix/zabbix_agentd.conf` is enriched by the line `Include=/usr/local/etc/zabbix_agentd.conf.d/*.conf` to load the configuration file.   
 The zabbix agent is counting the amount of lines in each of the packages files and reports that amount to your zabbix server.
 
-The zabbix server, after importing the [template](template/update_notifyer.xml) can process the supported values. The template basically comes with two triggers. One for security packages and one for regular packages.
+The zabbix server can process the supported values. The template basically comes with two triggers. One for security packages and one for regular packages.   
+All you need to do is to import the [template](template/update_notifyer.xml) and add them to the client where you've installed this software.
 
 ### Final note
 
